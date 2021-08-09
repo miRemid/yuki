@@ -1,0 +1,26 @@
+{
+    "anonymous": null,
+    "font": 0,
+    "group_id": 942186786,
+    "message": "1",
+    "message_id": 759765408,
+    "message_seq": 7221,
+    "message_type": "group",
+    "post_type": "message",
+    "raw_message": "1",
+    "self_id": 1096686811,
+    "sender": {
+        "age": 0,
+        "area": "",
+        "card": "",
+        "level": "",
+        "nickname": "天云",
+        "role": "admin",
+        "sex": "unknown",
+        "title": "",
+        "user_id": 351968703
+    },
+    "sub_type": "normal",
+    "time": 1628494750,
+    "user_id": 351968703
+}

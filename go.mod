@@ -16,6 +16,7 @@ require (
 	github.com/swaggo/files v0.0.0-20190704085106-630677cd5c14
 	github.com/swaggo/gin-swagger v1.3.1
 	github.com/swaggo/swag v1.7.0
+	github.com/tidwall/gjson v1.8.1
 	github.com/ugorji/go v1.2.6 // indirect
 	github.com/xujiajun/nutsdb v0.6.0
 	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d // indirect

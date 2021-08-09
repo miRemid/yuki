@@ -10,10 +10,6 @@ import (
 	"github.com/xujiajun/nutsdb"
 )
 
-type Target struct {
-	RemoteAddr string // reverse proxy target address
-}
-
 type Gateway struct {
 	mu sync.RWMutex
 
@@ -24,6 +20,8 @@ type Gateway struct {
 	systemConfig *SystemConfig
 
 	db *nutsdb.DB
+
+	Debug bool
 }
 
 // NewGateway returns a pointer of cqhttp-gateway struct
@@ -33,23 +31,12 @@ func NewGateway(addr string) (*Gateway, error) {
 	g.nodes = make(map[string]*Target)
 	g.rules = make(map[string]*Rule)
 	g.mu = sync.RWMutex{}
-	g.systemConfig = defaultSystemConfig()
+	g.Debug = true
 	// load database
 	if err := g.loaddb(); err != nil {
 		return nil, err
 	}
 	return g, nil
-}
-
-func (g *Gateway) loaddb() error {
-	opt := nutsdb.DefaultOptions
-	opt.Dir = "gateway.db"
-	db, err := nutsdb.Open(opt)
-	if err != nil {
-		return err
-	}
-	g.db = db
-	return nil
 }
 
 func (g *Gateway) ListenAndServe() error {

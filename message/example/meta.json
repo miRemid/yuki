@@ -1,0 +1,25 @@
+{
+    "interval": 5000,
+    "meta_event_type": "heartbeat",
+    "post_type": "meta_event",
+    "self_id": 1096686811,
+    "status": {
+        "app_enabled": true,
+        "app_good": true,
+        "app_initialized": true,
+        "good": true,
+        "online": true,
+        "plugins_good": null,
+        "stat": {
+            "packet_received": 30,
+            "packet_sent": 25,
+            "packet_lost": 0,
+            "message_received": 0,
+            "message_sent": 0,
+            "disconnect_times": 0,
+            "lost_times": 0,
+            "last_message_time": 0
+        }
+    },
+    "time": 1628494667
+}

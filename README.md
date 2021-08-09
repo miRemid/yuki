@@ -1,6 +1,6 @@
-# CQHTTP-GATEWAY
+# Yuki
 
-cqhttp-gateway是一个适用于cqhttp的反向代理网关
+Yuki是一个适用于cqhttp的反向代理网关
 
 # 功能
 - 解析命令，反向代理调用API
