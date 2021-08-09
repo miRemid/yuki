@@ -1,0 +1,64 @@
+definitions:
+  main.SystemConfig:
+    properties:
+      admin_qq:
+        type: string
+      cqhttp_address:
+        type: string
+      prefix:
+        items:
+          type: string
+        type: array
+    required:
+    - admin_qq
+    - cqhttp_address
+    - prefix
+    type: object
+  response.Response:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/config/get:
+    get:
+      description: Get gateway's system config
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get system config
+      tags:
+      - config
+  /api/config/modify:
+    post:
+      consumes:
+      - application/json
+      description: Modify gateway's system config
+      parameters:
+      - description: Modify Config
+        in: body
+        name: config
+        required: true
+        schema:
+          $ref: '#/definitions/main.SystemConfig'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Modify config
+      tags:
+      - config
+swagger: "2.0"
