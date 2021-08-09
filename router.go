@@ -6,7 +6,7 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	_ "github.com/miRemid/cqhttp-gateway/docs"
+	_ "github.com/miRemid/yuki/docs"
 )
 
 func (g *Gateway) Router() *gin.Engine {

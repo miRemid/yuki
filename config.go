@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/miRemid/cqhttp-gateway/response"
+	"github.com/miRemid/yuki/response"
 )
 
 type SystemConfig struct {
