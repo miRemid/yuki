@@ -80,6 +80,14 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 
 // AddNode will add a proxy node into the gateway
 // and save to the disk
+// @Summary Add Proxy Node
+// @Description Add a proxy remote node into the gateway's selector
+// @Tags Selector
+// @Accept json
+// @Produce json
+// @Param node body selector.Node true "Node struct"
+// @Success 200 {object} response.Response
+// @Router /api/node/add [post]
 func (g *Gateway) AddNode(ctx *gin.Context) {
 	var node selector.Node
 	if err := ctx.ShouldBind(&node); err != nil {
@@ -113,6 +121,13 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 	})
 }
 
+// GetAllNodes will return all proxy nodes
+// @Summary Get all nodes
+// @Description Get all proxy nodes and current selector's function
+// @Tags Selector
+// @Produce json
+// @Success 200 {object} response.Response
+// @Router /api/node/getAll [get]
 func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 	nodes, err := g.selector.Getall()
 	if err != nil {
@@ -131,6 +146,15 @@ func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 	})
 }
 
+// DeleteNode will delete a proxy node
+// @Summary Delete Node
+// @Description Delete a proxy node
+// @Tags Selector
+// @Accept json
+// @Produce json
+// @Param node body selector.Node true "Delete node"
+// @Success 200 {object} response.Response
+// @Router /api/node/remove [post]
 func (g *Gateway) DeleteNode(ctx *gin.Context) {
 	var node selector.Node
 	if err := ctx.ShouldBind(&node); err != nil {
@@ -156,6 +180,15 @@ type SelectorFuncName struct {
 	FuncName string `json:"func_name" form:"func_name" binding:"required"`
 }
 
+// ModifySelector will change gateway's selector method
+// @Summary Modify Selector
+// @Description Change gateway's selector method
+// @Tags Selector
+// @Accept json
+// @Produce json
+// @Param selector body main.SelectorFuncName true "Delete node"
+// @Success 200 {object} response.Response
+// @Router /api/node/modifySelector [post]
 func (g *Gateway) ModifySelector(ctx *gin.Context) {
 	var fun SelectorFuncName
 	if err := ctx.ShouldBind(&fun); err != nil {

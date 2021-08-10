@@ -77,15 +77,149 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/api/node/add": {
+            "post": {
+                "description": "Add a proxy remote node into the gateway's selector",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Selector"
+                ],
+                "summary": "Add Proxy Node",
+                "parameters": [
+                    {
+                        "description": "Node struct",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/selector.Node"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/node/getAll": {
+            "get": {
+                "description": "Get all proxy nodes and current selector's function",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Selector"
+                ],
+                "summary": "Get all nodes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/node/modifySelector": {
+            "post": {
+                "description": "Change gateway's selector method",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Selector"
+                ],
+                "summary": "Modify Selector",
+                "parameters": [
+                    {
+                        "description": "Delete node",
+                        "name": "selector",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.SelectorFuncName"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/node/remove": {
+            "post": {
+                "description": "Delete a proxy node",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Selector"
+                ],
+                "summary": "Delete Node",
+                "parameters": [
+                    {
+                        "description": "Delete node",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/selector.Node"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "main.SelectorFuncName": {
+            "type": "object",
+            "required": [
+                "func_name"
+            ],
+            "properties": {
+                "func_name": {
+                    "type": "string"
+                }
+            }
+        },
         "main.SystemConfig": {
             "type": "object",
             "required": [
                 "admin_qq",
                 "cqhttp_address",
-                "prefix"
+                "prefix",
+                "secret"
             ],
             "properties": {
                 "admin_qq": {
@@ -99,6 +233,9 @@ var doc = `{
                     "items": {
                         "type": "string"
                     }
+                },
+                "secret": {
+                    "type": "string"
                 }
             }
         },
@@ -112,6 +249,17 @@ var doc = `{
                     "type": "object"
                 },
                 "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "selector.Node": {
+            "type": "object",
+            "required": [
+                "remote_addr"
+            ],
+            "properties": {
+                "remote_addr": {
                     "type": "string"
                 }
             }

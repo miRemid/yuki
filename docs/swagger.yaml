@@ -1,4 +1,11 @@
 definitions:
+  main.SelectorFuncName:
+    properties:
+      func_name:
+        type: string
+    required:
+    - func_name
+    type: object
   main.SystemConfig:
     properties:
       admin_qq:
@@ -9,10 +16,13 @@ definitions:
         items:
           type: string
         type: array
+      secret:
+        type: string
     required:
     - admin_qq
     - cqhttp_address
     - prefix
+    - secret
     type: object
   response.Response:
     properties:
@@ -22,6 +32,13 @@ definitions:
         type: object
       message:
         type: string
+    type: object
+  selector.Node:
+    properties:
+      remote_addr:
+        type: string
+    required:
+    - remote_addr
     type: object
 info:
   contact: {}
@@ -61,4 +78,83 @@ paths:
       summary: Modify config
       tags:
       - config
+  /api/node/add:
+    post:
+      consumes:
+      - application/json
+      description: Add a proxy remote node into the gateway's selector
+      parameters:
+      - description: Node struct
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/selector.Node'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Add Proxy Node
+      tags:
+      - Selector
+  /api/node/getAll:
+    get:
+      description: Get all proxy nodes and current selector's function
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get all nodes
+      tags:
+      - Selector
+  /api/node/modifySelector:
+    post:
+      consumes:
+      - application/json
+      description: Change gateway's selector method
+      parameters:
+      - description: Delete node
+        in: body
+        name: selector
+        required: true
+        schema:
+          $ref: '#/definitions/main.SelectorFuncName'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Modify Selector
+      tags:
+      - Selector
+  /api/node/remove:
+    post:
+      consumes:
+      - application/json
+      description: Delete a proxy node
+      parameters:
+      - description: Delete node
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/selector.Node'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete Node
+      tags:
+      - Selector
 swagger: "2.0"
