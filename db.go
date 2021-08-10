@@ -28,14 +28,14 @@ const (
 )
 
 func (g *Gateway) loadDatabase() (bool, error) {
-	g.dprintf("check database file")
+	g.log("check database file")
 	var e bool
 	if stat, err := os.Stat(database_name); err != nil {
-		g.dprintf("database file not exists")
+		g.log("database file not exists")
 		// not exists
 		e = false
 	} else if stat.IsDir() {
-		g.dprintf("database file exists")
+		g.log("database file exists")
 		e = true
 	} else {
 		return false, errors.New("'data' is not a nutsdb format")
@@ -53,10 +53,10 @@ func (g *Gateway) loadDatabase() (bool, error) {
 func (g *Gateway) loadSystemConfig(e bool) error {
 	g.systemConfig = g.defaultSystemConfig()
 	if e {
-		g.dprintf("load config from database")
+		g.log("load config from database")
 		return g.loadSystemConfigFromDisk()
 	} else {
-		g.dprintf("using default system config")
+		g.log("using default system config")
 		return g.saveConfigToDisk()
 	}
 }

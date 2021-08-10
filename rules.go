@@ -1,3 +1,5 @@
 package main
 
-type Rule struct{}
+type Rule struct {
+	RemoteAddr string
+}

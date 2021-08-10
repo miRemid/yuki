@@ -14,14 +14,14 @@ import (
 func (g *Gateway) loadSelector(e bool) (selector.Selector, error) {
 	if !e {
 		// set funcName
-		g.dprintf("using default nodes selector")
+		g.log("using default nodes selector")
 		err := g.db.Update(func(tx *nutsdb.Tx) error {
 			return tx.Put(selector.SELECTOR_BUCKET, []byte(selector.SELECTOR_KEY), []byte(selector.RANDOM_SELECTOR), 0)
 		})
 		return selector.NewRandomSelector(), err
 	} else {
 		// 1. get selector funciton, and nodes
-		g.dprintf("load nodes from database")
+		g.log("load nodes from database")
 		var funcName string
 		var nodes = make([]*selector.Node, 0)
 		if err := g.db.View(func(tx *nutsdb.Tx) error {
@@ -85,7 +85,7 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 // @Tags Selector
 // @Accept json
 // @Produce json
-// @Param node body selector.Node true "Node struct"
+// @Param node body selector.Node true "Proxy node's remote address, eg: 127.0.0.1:8081"
 // @Success 200 {object} response.Response
 // @Router /api/node/add [post]
 func (g *Gateway) AddNode(ctx *gin.Context) {
@@ -152,7 +152,7 @@ func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 // @Tags Selector
 // @Accept json
 // @Produce json
-// @Param node body selector.Node true "Delete node"
+// @Param node body selector.Node true "Node's remote address"
 // @Success 200 {object} response.Response
 // @Router /api/node/remove [post]
 func (g *Gateway) DeleteNode(ctx *gin.Context) {
@@ -160,6 +160,15 @@ func (g *Gateway) DeleteNode(ctx *gin.Context) {
 	if err := ctx.ShouldBind(&node); err != nil {
 		ctx.JSON(http.StatusOK, response.Response{
 			Code:    response.StatusBindError,
+			Message: "del node failed",
+		})
+		return
+	}
+	if err := g.db.Update(func(tx *nutsdb.Tx) error {
+		return tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr))
+	}); err != nil {
+		ctx.JSON(http.StatusOK, response.Response{
+			Code:    response.StatusDelError,
 			Message: "del node failed",
 		})
 		return
@@ -182,7 +191,7 @@ type SelectorFuncName struct {
 
 // ModifySelector will change gateway's selector method
 // @Summary Modify Selector
-// @Description Change gateway's selector method
+// @Description Change gateway's selector method, supported: "random", "round_robin", "hash", "weight"
 // @Tags Selector
 // @Accept json
 // @Produce json
@@ -198,6 +207,9 @@ func (g *Gateway) ModifySelector(ctx *gin.Context) {
 		})
 		return
 	}
+	g.db.Update(func(tx *nutsdb.Tx) error {
+		return tx.Put(selector.SELECTOR_BUCKET, []byte(selector.SELECTOR_KEY), []byte(fun.FuncName), 0)
+	})
 	nodes, _ := g.selector.Getall()
 	s, err := g.resetSelector(fun.FuncName, nodes...)
 	if err != nil {

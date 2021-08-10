@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"net"
 	"net/http"
 	"sync"
@@ -26,12 +25,12 @@ type Gateway struct {
 }
 
 // NewGateway returns a pointer of cqhttp-gateway struct
-func NewGateway(addr string) (*Gateway, error) {
+func NewGateway(addr string, debug bool) (*Gateway, error) {
 	var g = new(Gateway)
 	g.Addr = addr
 	g.rules = make(map[string]*Rule)
 	g.mu = sync.RWMutex{}
-	g.Debug = true
+	g.Debug = debug
 	// load database
 	if ex, err := g.loadDatabase(); err != nil {
 		return nil, err
@@ -57,7 +56,7 @@ func (g *Gateway) ListenAndServe() error {
 		WriteTimeout:   30 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
-	log.Printf("Listening and serving HTTP on %s", g.Addr)
+	g.log("Listening and serving HTTP on %s", g.Addr)
 	l, err := net.Listen("tcp", g.Addr)
 	if err != nil {
 		return err

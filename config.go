@@ -27,11 +27,11 @@ func (g *Gateway) defaultSystemConfig() *SystemConfig {
 
 // ModifyConfig
 // @Summary Modify config
-// @Description Modify gateway's system config
+// @Description Modify gateway's system config, include: "CQHTTP_API_ADDRESS", "CQHTTP_SECRET", "ADMIN_QQ", "CMD PREFIX"
 // @Tags config
 // @Accept json
 // @Produce json
-// @Param config body main.SystemConfig true "Modify Config"
+// @Param config body main.SystemConfig true "config struct"
 // @Success 200 {object} response.Response
 // @Router /api/config/modify [post]
 func (g *Gateway) ModifyConfig(ctx *gin.Context) {

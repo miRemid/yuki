@@ -5,6 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"net/http"
+	"net/http/httputil"
 	"regexp"
 	"strings"
 
@@ -14,15 +17,14 @@ import (
 	"github.com/miRemid/yuki/message"
 )
 
-func (g *Gateway) ReverseProxy(ctx *gin.Context) {
-	defer ctx.Status(204)
-
+func (g *Gateway) reverseProxy(ctx *gin.Context) {
 	var (
-		data  bytes.Buffer
-		err   error
-		msg   string
-		cmd   string
-		param string
+		data    bytes.Buffer
+		err     error
+		msg     string
+		cmd     string
+		param   string
+		subpath string
 	)
 	body := ctx.Request.Body
 	io.Copy(&data, body)
@@ -37,33 +39,60 @@ func (g *Gateway) ReverseProxy(ctx *gin.Context) {
 		if msg, err = g.checkPrefix(raw_message); err != nil {
 			// reject
 			g.dprintf("check prefix error: %v", err)
+			ctx.Status(204)
 			return
 		} else {
 			splits := strings.Split(msg, " ")
 			cmd = splits[0]
 			param = strings.Join(splits[1:], " ")
 		}
+		subpath = "/" + cmd
 		g.dprintf("[Cmd] %s, [Param] %s", cmd, param)
 	case message.Notice:
+		subpath = "/notice"
 		g.dprintf("receive notice message")
 	case message.MetaEvent:
+		subpath = "/meta"
 		g.dprintf("receive meta_event message")
-		return
 	case message.Request:
+		subpath = "/request"
 		g.dprintf("receive request message")
 	default:
+		ctx.Status(204)
 		return
 	}
-	// g.mu.RLock()
-	// target := g.nodes[cmd]
-	// director := func(req *http.Request) {
-	// 	req.URL.Scheme = "http"
-	// 	req.URL.Host = target.RemoteAddr
-	// 	req.Host = target.RemoteAddr
-	// }
-	// g.mu.RUnlock()
-	// proxy := &httputil.ReverseProxy{Director: director}
-	// proxy.ServeHTTP(ctx.Writer, ctx.Request)
+
+	ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(data.Bytes()))
+	g.mu.RLock()
+	node, err := g.selector.Peek(ctx.ClientIP())
+	if err != nil {
+		g.dprintf("peek node error: %v", err)
+		ctx.Status(204)
+		return
+	}
+	target := node.RemoteAddr
+	if err != nil {
+		g.dprintf("url parse error: %v", err)
+		ctx.Status(204)
+		return
+	}
+	g.dprintf("Reverse Proxy to RemoteAddr: %v", target)
+	director := func(req *http.Request) {
+		req.URL.Scheme = "http"
+		req.URL.Host = target
+		req.URL.Path = subpath
+		req.Host = target
+	}
+	modifyReponse := func(res *http.Response) error {
+		// TODO: if command 404, quick reply
+		return nil
+	}
+	proxy := httputil.ReverseProxy{
+		Director:       director,
+		ModifyResponse: modifyReponse,
+	}
+	g.mu.RUnlock()
+	proxy.ServeHTTP(ctx.Writer, ctx.Request)
 }
 
 func (g *Gateway) checkPrefix(message string) (string, error) {
