@@ -36,9 +36,10 @@ func (g *Gateway) Router() *gin.Engine {
 
 		node := api.Group("/node")
 		{
-			node.POST("/add", nil)
-			node.POST("/remove", nil)
-			node.POST("/modify", nil)
+			node.POST("/add", g.AddNode)
+			node.POST("/remove", g.DeleteNode)
+			node.GET("/getAll", g.GetAllNodes)
+			node.POST("/modifySelector", g.ModifySelector)
 		}
 	}
 	return route

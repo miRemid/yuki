@@ -18,38 +18,50 @@ const (
 	ADMINQQ_KEY   = "adminqq"
 	PREFIX_KEY    = "prefix"
 )
+
+const (
+	NODE_BUCKET = "node"
+)
+
 const (
 	ALREADY_INIT_KEY = "already_init"
 )
 
-func (g *Gateway) loaddb() error {
-	isInit := false
+func (g *Gateway) loadDatabase() (bool, error) {
 	g.dprintf("check database file")
+	var e bool
 	if stat, err := os.Stat(database_name); err != nil {
-		g.dprintf("database file not exists, using default system config")
+		g.dprintf("database file not exists")
 		// not exists
+		e = false
 	} else if stat.IsDir() {
-		g.dprintf("database file exists, load config from database")
-		isInit = true
+		g.dprintf("database file exists")
+		e = true
 	} else {
-		return errors.New("'data' is not a nutsdb format")
+		return false, errors.New("'data' is not a nutsdb format")
 	}
 	opt := nutsdb.DefaultOptions
 	opt.Dir = database_name
 	db, err := nutsdb.Open(opt)
 	if err != nil {
-		return err
+		return e, err
 	}
 	g.db = db
+	return e, nil
+}
+
+func (g *Gateway) loadSystemConfig(e bool) error {
 	g.systemConfig = g.defaultSystemConfig()
-	if isInit {
-		return g.loadSystemConfig()
+	if e {
+		g.dprintf("load config from database")
+		return g.loadSystemConfigFromDisk()
 	} else {
+		g.dprintf("using default system config")
 		return g.saveConfigToDisk()
 	}
 }
 
-func (g *Gateway) loadSystemConfig() error {
+func (g *Gateway) loadSystemConfigFromDisk() error {
 	return g.db.View(func(tx *nutsdb.Tx) error {
 		bucket := SYSTEM_BUCKET
 		entry, _ := tx.Get(bucket, []byte(CQHTTP_KEY))

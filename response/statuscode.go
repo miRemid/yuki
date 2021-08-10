@@ -6,4 +6,10 @@ const (
 	StatusOK StatusCode = iota
 	StatusBindError
 	StatusSaveDiskError
+	StatusAddError
+	StatusGetError
+	StatusDelError
+	StatusModError
+
+	StatusAlreadyExist
 )

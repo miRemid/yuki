@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/miRemid/yuki/selector"
 	"github.com/xujiajun/nutsdb"
 )
 
@@ -15,7 +16,7 @@ type Gateway struct {
 
 	Addr string
 
-	nodes        map[string]*Target
+	selector     selector.Selector
 	rules        map[string]*Rule
 	systemConfig *SystemConfig
 
@@ -28,13 +29,21 @@ type Gateway struct {
 func NewGateway(addr string) (*Gateway, error) {
 	var g = new(Gateway)
 	g.Addr = addr
-	g.nodes = make(map[string]*Target)
 	g.rules = make(map[string]*Rule)
 	g.mu = sync.RWMutex{}
 	g.Debug = true
 	// load database
-	if err := g.loaddb(); err != nil {
+	if ex, err := g.loadDatabase(); err != nil {
 		return nil, err
+	} else {
+		if err := g.loadSystemConfig(ex); err != nil {
+			return nil, err
+		}
+		if s, err := g.loadSelector(ex); err != nil {
+			return nil, err
+		} else {
+			g.selector = s
+		}
 	}
 	return g, nil
 }
