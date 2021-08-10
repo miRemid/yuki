@@ -60,9 +60,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Modify gateway's system config
+      description: 'Modify gateway''s system config, include: "CQHTTP_API_ADDRESS",
+        "CQHTTP_SECRET", "ADMIN_QQ", "CMD PREFIX"'
       parameters:
-      - description: Modify Config
+      - description: config struct
         in: body
         name: config
         required: true
@@ -84,7 +85,7 @@ paths:
       - application/json
       description: Add a proxy remote node into the gateway's selector
       parameters:
-      - description: Node struct
+      - description: 'Proxy node''s remote address, eg: 127.0.0.1:8081'
         in: body
         name: node
         required: true
@@ -117,7 +118,8 @@ paths:
     post:
       consumes:
       - application/json
-      description: Change gateway's selector method
+      description: 'Change gateway''s selector method, supported: "random", "round_robin",
+        "hash", "weight"'
       parameters:
       - description: Delete node
         in: body
@@ -141,7 +143,7 @@ paths:
       - application/json
       description: Delete a proxy node
       parameters:
-      - description: Delete node
+      - description: Node's remote address
         in: body
         name: node
         required: true

@@ -46,7 +46,7 @@ var doc = `{
         },
         "/api/config/modify": {
             "post": {
-                "description": "Modify gateway's system config",
+                "description": "Modify gateway's system config, include: \"CQHTTP_API_ADDRESS\", \"CQHTTP_SECRET\", \"ADMIN_QQ\", \"CMD PREFIX\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -59,7 +59,7 @@ var doc = `{
                 "summary": "Modify config",
                 "parameters": [
                     {
-                        "description": "Modify Config",
+                        "description": "config struct",
                         "name": "config",
                         "in": "body",
                         "required": true,
@@ -93,7 +93,7 @@ var doc = `{
                 "summary": "Add Proxy Node",
                 "parameters": [
                     {
-                        "description": "Node struct",
+                        "description": "Proxy node's remote address, eg: 127.0.0.1:8081",
                         "name": "node",
                         "in": "body",
                         "required": true,
@@ -134,7 +134,7 @@ var doc = `{
         },
         "/api/node/modifySelector": {
             "post": {
-                "description": "Change gateway's selector method",
+                "description": "Change gateway's selector method, supported: \"random\", \"round_robin\", \"hash\", \"weight\"",
                 "consumes": [
                     "application/json"
                 ],
@@ -181,7 +181,7 @@ var doc = `{
                 "summary": "Delete Node",
                 "parameters": [
                     {
-                        "description": "Delete node",
+                        "description": "Node's remote address",
                         "name": "node",
                         "in": "body",
                         "required": true,

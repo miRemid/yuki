@@ -195,7 +195,7 @@ type SelectorFuncName struct {
 // @Tags Selector
 // @Accept json
 // @Produce json
-// @Param selector body main.SelectorFuncName true "Delete node"
+// @Param selector body main.SelectorFuncName true "Load balance algorithm name"
 // @Success 200 {object} response.Response
 // @Router /api/node/modifySelector [post]
 func (g *Gateway) ModifySelector(ctx *gin.Context) {

@@ -6,7 +6,7 @@ WINDOWS_AMD64_NAME="yuki_windows_x86-64.exe"
 
 
 run:
-	@go run *.go
+	@go run *.go -d
 
 build-linux:
 	CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -a -ldflags \
