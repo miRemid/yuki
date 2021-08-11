@@ -1,9 +1,6 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 
 	"github.com/miRemid/yuki/response"
@@ -37,11 +34,8 @@ func (g *Gateway) defaultSystemConfig() *SystemConfig {
 func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 	var config SystemConfig
 	if err := ctx.ShouldBindJSON(&config); err != nil {
-		log.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusOK, response.Response{
-			Code:    response.StatusBindError,
-			Message: "modify failed",
-		})
+		g.dprintf("modify config binding failed: %v", err)
+		response.BindError(ctx, "modify config failed: bind error")
 		return
 	}
 	g.mu.Lock()
@@ -52,16 +46,11 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 	g.systemConfig.Secret = config.Secret
 	// save to the database
 	if err := g.saveConfigToDisk(); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusSaveDiskError,
-			Message: "modify success",
-		})
+		g.dprintf("save config to disk failed: %v", err)
+		response.DatabaseAddError(ctx, "modify config failed: save disk failed")
 		return
 	}
-	ctx.JSON(http.StatusOK, response.Response{
-		Code:    response.StatusOK,
-		Message: "modify success",
-	})
+	response.OK(ctx, "modify config success", nil)
 }
 
 // GetConfig
@@ -74,9 +63,5 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 func (g *Gateway) GetConfig(ctx *gin.Context) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-
-	ctx.JSON(http.StatusOK, response.Response{
-		Code: response.StatusOK,
-		Data: g.systemConfig,
-	})
+	response.OK(ctx, "", g.systemConfig)
 }

@@ -28,7 +28,6 @@ type Gateway struct {
 func NewGateway(addr string, debug bool) (*Gateway, error) {
 	var g = new(Gateway)
 	g.Addr = addr
-	g.rules = make(map[string]*Rule)
 	g.mu = sync.RWMutex{}
 	g.Debug = debug
 	// load database
@@ -42,6 +41,9 @@ func NewGateway(addr string, debug bool) (*Gateway, error) {
 			return nil, err
 		} else {
 			g.selector = s
+		}
+		if err := g.loadRules(ex); err != nil {
+			return nil, err
 		}
 	}
 	return g, nil

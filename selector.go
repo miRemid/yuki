@@ -91,16 +91,13 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 func (g *Gateway) AddNode(ctx *gin.Context) {
 	var node selector.Node
 	if err := ctx.ShouldBind(&node); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusBindError,
-			Message: "add node failed",
-		})
+		g.dprintf("add proxy node failed: %v", err)
+		response.BindError(ctx, "add node failed: binding failed")
 		return
 	}
+	// check remote add exist
 	if err := g.selector.Check(node.RemoteAddr); err == nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code: response.StatusAlreadyExist,
-		})
+		response.AlreadyExisterror(ctx, "add node failed: node already exist")
 		return
 	}
 	g.selector.Add(&node)
@@ -109,16 +106,11 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 		data, _ := json.Marshal(&node)
 		return tx.Put(NODE_BUCKET, []byte(node.RemoteAddr), data, 0)
 	}); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusSaveDiskError,
-			Message: "add node failed",
-		})
+		g.dprintf("add proxy node to database failed: %v", err)
+		response.DatabaseAddError(ctx, "add node failed: save to the database failed")
 		return
 	}
-	ctx.JSON(http.StatusOK, response.Response{
-		Code:    response.StatusOK,
-		Message: "add node success",
-	})
+	response.OK(ctx, "add node success", nil)
 }
 
 // GetAllNodes will return all proxy nodes
@@ -131,18 +123,13 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 	nodes, err := g.selector.Getall()
 	if err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusGetError,
-			Message: "get failed",
-		})
+		g.dprintf("get all nodes failed: %v", err)
+		response.GetError(ctx, "get all nodes failed")
 		return
 	}
-	ctx.JSON(http.StatusOK, response.Response{
-		Code: response.StatusOK,
-		Data: gin.H{
-			"selector_name": g.selector.Name(),
-			"nodes":         nodes,
-		},
+	response.OK(ctx, "", gin.H{
+		"method": g.selector.Name(),
+		"nodes":  nodes,
 	})
 }
 
@@ -158,26 +145,18 @@ func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 func (g *Gateway) DeleteNode(ctx *gin.Context) {
 	var node selector.Node
 	if err := ctx.ShouldBind(&node); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusBindError,
-			Message: "del node failed",
-		})
+		g.dprintf("delete node failed: %v", err)
+		response.BindError(ctx, "delete node failed: binding failed")
 		return
 	}
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
-		return tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr))
+		if err := tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr)); err != nil {
+			return err
+		}
+		return g.selector.Delete(node.RemoteAddr)
 	}); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusDelError,
-			Message: "del node failed",
-		})
-		return
-	}
-	if err := g.selector.Delete(node.RemoteAddr); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusDelError,
-			Message: "del node failed",
-		})
+		g.dprintf("delete proxy node failed: %v", err)
+		response.DelError(ctx, "delete node failed")
 		return
 	}
 	ctx.JSON(http.StatusOK, response.Response{
@@ -201,26 +180,21 @@ type SelectorFuncName struct {
 func (g *Gateway) ModifySelector(ctx *gin.Context) {
 	var fun SelectorFuncName
 	if err := ctx.ShouldBind(&fun); err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusBindError,
-			Message: "modify failed",
-		})
+		g.dprintf("modify selector failed: %v", err)
+		response.BindError(ctx, "modify selector faield: binding error")
 		return
 	}
-	g.db.Update(func(tx *nutsdb.Tx) error {
+	if err := g.db.Update(func(tx *nutsdb.Tx) error {
+		nodes, _ := g.selector.Getall()
+		s, err := g.resetSelector(fun.FuncName, nodes...)
+		if err != nil {
+			return err
+		}
+		g.selector = s
 		return tx.Put(selector.SELECTOR_BUCKET, []byte(selector.SELECTOR_KEY), []byte(fun.FuncName), 0)
-	})
-	nodes, _ := g.selector.Getall()
-	s, err := g.resetSelector(fun.FuncName, nodes...)
-	if err != nil {
-		ctx.JSON(http.StatusOK, response.Response{
-			Code:    response.StatusBindError,
-			Message: "modify failed",
-		})
-		return
+	}); err != nil {
+		g.dprintf("modify selector failed: %v", err)
+		response.ModError(ctx, "modify selector failed")
 	}
-	g.selector = s
-	ctx.JSON(http.StatusOK, response.Response{
-		Code: response.StatusOK,
-	})
+	response.OK(ctx, "modify selector success", nil)
 }

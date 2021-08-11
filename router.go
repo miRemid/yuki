@@ -45,6 +45,14 @@ func (g *Gateway) Router() *gin.Engine {
 			node.GET("/getAll", g.GetAllNodes)
 			node.POST("/modifySelector", g.ModifySelector)
 		}
+
+		rule := api.Group("/rule")
+		{
+			rule.POST("/add", g.AddRule)
+			rule.POST("/remove", g.DelRule)
+			rule.POST("/modify", g.ModifyRule)
+			rule.GET("/getAll", g.GetRules)
+		}
 	}
 	return route
 }

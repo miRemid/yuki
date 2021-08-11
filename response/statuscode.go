@@ -5,11 +5,15 @@ type StatusCode uint32
 const (
 	StatusOK StatusCode = iota
 	StatusBindError
-	StatusSaveDiskError
+	StatusAddDiskError
+	StatusDelDiskError
+	StatusGetDiskError
+	StatusModDiskError
 	StatusAddError
 	StatusGetError
 	StatusDelError
 	StatusModError
-
 	StatusAlreadyExist
+	StatusNotExist
+	StatusRegCompileError
 )
