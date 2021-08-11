@@ -1,8 +1,7 @@
 package main
 
 import (
-	"net/http"
-
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -20,9 +19,10 @@ func (g *Gateway) Router() *gin.Engine {
 	route.POST("/", g.checkSignature(), g.reverseProxy)
 
 	// web static page route
-	route.GET("/", func(ctx *gin.Context) {
-		ctx.String(http.StatusOK, "hello, welcome to the yuki!")
-	})
+	route.Use(static.Serve("/", static.LocalFile("./web/dist", true)))
+	// route.GET("/", func(ctx *gin.Context) {
+	// 	ctx.String(http.StatusOK, "hello, welcome to the yuki!")
+	// })
 
 	// swagger page
 	url := ginSwagger.URL("http://192.168.1.106:8080/swagger/doc.json") // The url pointing to API definition
