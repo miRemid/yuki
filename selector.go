@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xujiajun/nutsdb"
 
 	"github.com/miRemid/yuki/response"
 	"github.com/miRemid/yuki/selector"
+	"github.com/miRemid/yuki/tools"
 )
 
 func (g *Gateway) loadSelector(e bool) (selector.Selector, error) {
@@ -89,27 +92,39 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 // @Success 200 {object} response.Response
 // @Router /api/node/add [post]
 func (g *Gateway) AddNode(ctx *gin.Context) {
-	var node selector.Node
-	if err := ctx.ShouldBind(&node); err != nil {
+	var node = new(selector.Node)
+	if err := ctx.ShouldBind(node); err != nil {
 		g.dprintf("add proxy node failed: %v", err)
 		response.BindError(ctx, "add node failed: binding failed")
 		return
 	}
+	// check remote valid
+	u, ok := tools.CheckValidURL(node.RemoteAddr)
+	if !ok {
+		g.dprintf("%s is an invaild url address", node.RemoteAddr)
+		response.InvalidURLFormatError(ctx, "add node failed: invalid remote address")
+		return
+	}
+	node.RemoteAddr = u.String()
 	// check remote add exist
 	if err := g.selector.Check(node.RemoteAddr); err == nil {
+		g.dprintf("%s already exist", node.RemoteAddr)
 		response.AlreadyExisterror(ctx, "add node failed: node already exist")
 		return
 	}
-	g.selector.Add(&node)
 	// save to the disk
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
-		data, _ := json.Marshal(&node)
+		data, _ := json.Marshal(node)
+		g.dprintf("save %s into the %s", node.RemoteAddr, NODE_BUCKET)
 		return tx.Put(NODE_BUCKET, []byte(node.RemoteAddr), data, 0)
 	}); err != nil {
 		g.dprintf("add proxy node to database failed: %v", err)
 		response.DatabaseAddError(ctx, "add node failed: save to the database failed")
 		return
 	}
+	node.ID = fmt.Sprintf("%d", time.Now().UnixNano())
+	g.dprintf("add %s node into the selector", node.RemoteAddr)
+	g.selector.Add(node)
 	response.OK(ctx, "add node success", nil)
 }
 
@@ -149,16 +164,49 @@ func (g *Gateway) DeleteNode(ctx *gin.Context) {
 		response.BindError(ctx, "delete node failed: binding failed")
 		return
 	}
+	_, ok := tools.CheckValidURL(node.RemoteAddr)
+	if !ok {
+		response.InvalidURLFormatError(ctx, "delete proxy node failed: invalid remote address")
+		return
+	}
+	rules := make([]string, 0)
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
-		if err := tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr)); err != nil {
+		// 1. get all cmd rule from database
+		key := remote_key(node.RemoteAddr)
+		g.dprintf("get %s from %s bucket", node.RemoteAddr, RULE_REMOTE_ARRAY_BUCKET)
+		cmds, err := tx.GetAll(key)
+		if err != nil {
 			return err
 		}
-		return g.selector.Delete(node.RemoteAddr)
+		// 2. delete cmd rule
+		g.dprintf("delete rule from database")
+		for _, cmd := range cmds {
+			g.dprintf("delete %s from %s", string(cmd.Key), RULE_BUCKET)
+			// delete rule record
+			tx.Delete(RULE_BUCKET, cmd.Key)
+			g.dprintf("delete %s from %s", string(cmd.Key), key)
+			// delete remote_arr record
+			tx.Delete(key, cmd.Key)
+			rules = append(rules, string(cmd.Key))
+		}
+		// 3. delete node
+		g.dprintf("delete %s from %s", node.RemoteAddr, NODE_BUCKET)
+		return tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr))
 	}); err != nil {
 		g.dprintf("delete proxy node failed: %v", err)
 		response.DelError(ctx, "delete node failed")
 		return
 	}
+	// delete map
+	g.mu.Lock()
+	g.dprintf("delete selector's proxy node")
+	g.selector.Delete(node.RemoteAddr)
+	g.dprintf("delete proxy node's cache")
+	for _, r := range rules {
+		g.dprintf("delete %s rule in cache", r)
+		delete(g.rules, r)
+	}
+	g.mu.Unlock()
 	ctx.JSON(http.StatusOK, response.Response{
 		Code: response.StatusOK,
 	})

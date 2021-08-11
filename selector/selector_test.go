@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"net/url"
 	"testing"
 
 	"github.com/miRemid/yuki/selector"
@@ -17,8 +18,9 @@ const (
 func generateNode() []*selector.Node {
 	nodes := make([]*selector.Node, 0)
 	for i := 1; i <= nodeNums; i++ {
+		u, _ := url.Parse(fmt.Sprintf("http://127.0.0.1:%d", i))
 		nodes = append(nodes, &selector.Node{
-			RemoteAddr: fmt.Sprintf("%d", i),
+			RemoteAddr: u.String(),
 		})
 	}
 	return nodes
@@ -102,9 +104,6 @@ func TestWeightDelete(t *testing.T) {
 	for _, n := range ns {
 		log.Println(n.RemoteAddr)
 	}
-	s.Add(&selector.Node{
-		RemoteAddr: "888",
-	})
 	log.Println("===========ADD==========")
 	ns, _ = s.Getall()
 	for _, n := range ns {

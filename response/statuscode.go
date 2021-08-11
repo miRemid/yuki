@@ -16,4 +16,5 @@ const (
 	StatusAlreadyExist
 	StatusNotExist
 	StatusRegCompileError
+	StatusInvalidURLFormat
 )

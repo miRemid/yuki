@@ -21,11 +21,12 @@ const (
 )
 
 var (
-	ErrNodesEmpty   = errors.New("empty nodes")
-	ErrNodeNotFound = func(remote string) error {
-		return fmt.Errorf("%s node not found", remote)
-	}
+	ErrNodesEmpty = errors.New("empty nodes")
 )
+
+func ErrNodeNotFound(remote string) error {
+	return fmt.Errorf("%s node not found", remote)
+}
 
 type Selector interface {
 	Add(node *Node) error

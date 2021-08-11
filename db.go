@@ -20,7 +20,7 @@ const (
 )
 
 const (
-	NODE_BUCKET = "node"
+	NODE_BUCKET = "node_bucket"
 )
 
 const (

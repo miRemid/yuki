@@ -72,3 +72,7 @@ func DatabaseModError(ctx *gin.Context, message string) {
 func DatabaseGetError(ctx *gin.Context, message string) {
 	Error(ctx, StatusGetDiskError, message)
 }
+
+func InvalidURLFormatError(ctx *gin.Context, message string) {
+	Error(ctx, StatusInvalidURLFormat, message)
+}
