@@ -175,7 +175,7 @@ func (g *Gateway) DeleteNode(ctx *gin.Context) {
 		key := remote_key(node.RemoteAddr)
 		g.dprintf("get %s from %s bucket", node.RemoteAddr, RULE_REMOTE_ARRAY_BUCKET)
 		cmds, err := tx.GetAll(key)
-		if err != nil {
+		if err != nil && err != nutsdb.ErrBucketEmpty {
 			return err
 		}
 		// 2. delete cmd rule

@@ -4,6 +4,8 @@ RELEASE_DIR="release"
 LINUX_AMD64_NAME="yuki_linux_amd64"
 WINDOWS_AMD64_NAME="yuki_windows_x86-64.exe"
 
+clean:
+	rm -rf data release
 
 run:
 	@go run *.go -d

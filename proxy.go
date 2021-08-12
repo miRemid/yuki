@@ -63,6 +63,7 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 	ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(data.Bytes()))
 	g.mu.RLock()
 	node, err := g.selector.Peek(ctx.ClientIP())
+	g.mu.RUnlock()
 	if err != nil {
 		g.dprintf("peek node error: %v", err)
 		ctx.Status(204)
@@ -87,7 +88,6 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 		Director:       tools.Director(target),
 		ModifyResponse: tools.ModifyResponse(),
 	}
-	g.mu.RUnlock()
 	proxy.ServeHTTP(ctx.Writer, ctx.Request)
 }
 

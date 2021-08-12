@@ -1,10 +1,21 @@
-# Yuki
+<h1 align="center">Welcome to Yuki 👋</h1>
 
-Yuki是一个适用于cqhttp的反向代理网关
+> A reverse proxy gateway for go-cqhttp
 
-# 功能
-- 解析命令，反向代理调用API
+## Author
 
-通过配置可以对cqhttp发送的消息进行解析，分离命令和参数信息后，转发给真正的后端服务
+👤 **miRemid**
 
-![Reverse Proxy](./assets/reverse_proxy.png)
+* Website: https://blog.zxykm.xyz
+* Github: [@miRemid](https://github.com/miRemid)
+
+## 🚀 Usage
+
+```sh
+./yuki_linux_x86-64 -d -p 8080
+```
+
+## 
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_

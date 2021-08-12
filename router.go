@@ -16,7 +16,7 @@ func (g *Gateway) Router() *gin.Engine {
 	route.Use(gin.Recovery())
 
 	// reverse proxy
-	route.POST("/", g.checkSignature(), g.reverseProxy)
+	route.POST("/", g.checkSignature, g.reverseProxy)
 
 	// web static page route
 	route.Use(static.Serve("/", static.LocalFile("./web/dist", true)))
