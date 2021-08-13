@@ -1,5 +1,5 @@
 import axios from 'axios'
-
+import cogoToast from 'cogo-toast'
 
 const baseURL = import.meta.env.MODE === 'development' ? '' : window.location.protocol + "//" + window.location.host
 
@@ -8,6 +8,13 @@ const _request = axios.create({
     timeout: 10000,
 })
 
+const cogoError = (msg) => {
+    cogoToast.error(msg, {
+        heading: 'Request failed'
+    })
+}
+
+// send request
 _request.interceptors.request.use(
     (config) => {
         console.log(config.url)
@@ -18,9 +25,21 @@ _request.interceptors.request.use(
     }
 )
 
+// response
 _request.interceptors.response.use(
     (response) => {
-        return response
+        // check response's code
+        if (response.status === 200) {
+            const res = response.data
+            switch (res.code) {
+                case 0:
+                    break
+                default:
+                    cogoError('Call api failed...')
+                    break
+            }
+            return res
+        }
     },
     (error) => {
         return error
@@ -41,7 +60,7 @@ export const get = (url, params = {}) => {
     })
 }
 
-export const post = (url, params={}, headers={
+export const post = (url, params = {}, headers = {
     'Content-Type': 'application/json'
 }) => {
     return new Promise((resolve, reject) => {
@@ -50,7 +69,7 @@ export const post = (url, params={}, headers={
             method: 'POST',
             data: params,
             headers: headers
-        }).then(res=>{
+        }).then(res => {
             resolve(res)
         }).catch(err => {
             reject(err)

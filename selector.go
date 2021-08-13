@@ -71,8 +71,8 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 		return selector.NewRandomSelector(nodes...), nil
 	case selector.ROUND_ROBIN_SELECTOR:
 		return selector.NewRoundRobinSelector(nodes...), nil
-	case selector.HASH_SELECTOR:
-		return selector.NewHashSelector(nodes...), nil
+	// case selector.HASH_SELECTOR:
+	// 	return selector.NewHashSelector(nodes...), nil
 	case selector.WEIGHT_SELECTOR:
 		return selector.NewWeightRoundRobinSelector(nodes...), nil
 	default:
@@ -113,6 +113,7 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 		return
 	}
 	// save to the disk
+	node.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
 		data, _ := json.Marshal(node)
 		g.dprintf("save %s into the %s", node.RemoteAddr, NODE_BUCKET)
@@ -122,10 +123,9 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 		response.DatabaseAddError(ctx, "add node failed: save to the database failed")
 		return
 	}
-	node.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	g.dprintf("add %s node into the selector", node.RemoteAddr)
 	g.selector.Add(node)
-	response.OK(ctx, "add node success", nil)
+	response.OK(ctx, "add node success", node)
 }
 
 // GetAllNodes will return all proxy nodes

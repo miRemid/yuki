@@ -8,11 +8,14 @@
   },
   "dependencies": {
     "@material-ui/core": "^4.12.3",
+    "@material-ui/icons": "^4.11.2",
     "axios": "^0.21.1",
+    "cogo-toast": "^4.2.3",
     "less": "^4.1.1",
     "less-loader": "^10.0.1",
     "qs": "^6.10.1",
     "react": "^17.0.0",
+    "react-confirm-alert": "^2.7.0",
     "react-dom": "^17.0.0",
     "react-router-dom": "^5.2.0"
   },

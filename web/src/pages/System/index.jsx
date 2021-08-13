@@ -3,16 +3,22 @@ import TextField from '@material-ui/core/TextField'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button } from '@material-ui/core'
 
-import './index.less'
 import { get, post } from '../../request'
+
+
 const useStyles = makeStyles((theme) => ({
     root: {
+        padding: '0 10%',
+        fontSize: 25,
         '& .MuiTextField-root': {
             'margin-right': 8,
             'margin-bottom': 8,
             width: 200,
         },
     },
+    formBox: {
+        display: 'flex'
+    }
 }));
 export default function System() {
 
@@ -22,6 +28,7 @@ export default function System() {
     const [prefix, setPrefix] = useState('')
 
     const updateConfig = async () => {
+        const title = 'Update system config'
         try {
             const arrs = prefix.split(';')
             arrs.forEach((item, i) => {
@@ -29,13 +36,17 @@ export default function System() {
                     arrs.splice(i, 1)
                 }
             })
-            const data = {
+            const res = await post('/api/config/modify', {
                 'cqhttp_address': cqhttp,
                 'admin_qq': admin,
                 'secret': secret,
                 'prefix': arrs,
+            })
+            if (res.data.code === 0) {
+
+            } else {
+
             }
-            console.log(data)
         } catch (error) {
             console.log(error)
         }
@@ -69,22 +80,24 @@ export default function System() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const response = await get('/api/config/get')
-            setAdmin(response.data.data.admin_qq)
-            setCqhttp(response.data.data.cqhttp_address)
-            setPrefix(response.data.data.prefix.join(';'))
-            setSecret(response.data.data.secret)
+            const res = await get('/api/config/get')
+            if (res.code === 0) {
+                setAdmin(res.data.admin_qq)
+                setCqhttp(res.data.cqhttp_address)
+                setPrefix(res.data.prefix.join(';'))
+                setSecret(res.data.secret)
+            }
         }
         fetchData()
     }, [])
 
     return (
-        <div className="container system">
+        <div className={classess.root}>
             <br />
             <h4 className="title">系统配置</h4>
             {/* This is the system's configuration form */}
             <br />
-            <div className={classess.root + " form-box"}>
+            <div className={classess.formBox}>
                 <TextField
                     id="cqhttp_address"
                     label="CQHTTP_ADDRESS"
