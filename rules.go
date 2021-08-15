@@ -133,7 +133,7 @@ func (g *Gateway) AddRule(ctx *gin.Context) {
 }
 
 type DelRuleReq struct {
-	Cmd string `json:"cmd" form:"cmd"`
+	Cmd string `json:"cmd" form:"cmd" binding:"required"`
 }
 
 func (g *Gateway) DelRule(ctx *gin.Context) {
@@ -207,8 +207,13 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 		g.dprintf("get ex error: %v", err)
 	}
 
+	rules := make([]interface{}, 0)
+	for key := range g.rules {
+		rules = append(rules, g.rules[key])
+	}
+
 	response.OK(ctx, "", gin.H{
-		"rules": g.rules,
+		"rules": rules,
 		"ex":    data,
 	})
 }

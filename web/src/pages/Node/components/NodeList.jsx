@@ -88,8 +88,6 @@ AddProxyNodeDialog.propTypes = {
 
 const NodeList = (props) => {
 
-  console.log(props)
-
   const classes = useStyle()
 
   const [open, setOpen] = useState(false)
@@ -115,7 +113,7 @@ const NodeList = (props) => {
 
   return (
     <TableContainer component={Paper}>
-      <Table className={classes.root} aria-label="simple table">
+      <Table className={classes.root} aria-label="node table">
         <TableHead>
           <TableRow>
             <TableCell>ID</TableCell>
