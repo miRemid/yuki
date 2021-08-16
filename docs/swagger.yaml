@@ -1,4 +1,23 @@
 definitions:
+  main.DelRuleReq:
+    properties:
+      cmd:
+        type: string
+    required:
+    - cmd
+    type: object
+  main.Rule:
+    properties:
+      cmd:
+        type: string
+      regex:
+        type: string
+      remote_addr:
+        type: string
+    required:
+    - cmd
+    - remote_addr
+    type: object
   main.SelectorFuncName:
     properties:
       func_name:
@@ -35,6 +54,8 @@ definitions:
     type: object
   selector.Node:
     properties:
+      id:
+        type: string
       remote_addr:
         type: string
     required:
@@ -121,7 +142,7 @@ paths:
       description: 'Change gateway''s selector method, supported: "random", "round_robin",
         "hash", "weight"'
       parameters:
-      - description: Delete node
+      - description: Load balance algorithm name
         in: body
         name: selector
         required: true
@@ -159,4 +180,84 @@ paths:
       summary: Delete Node
       tags:
       - Selector
+  /api/rule/add:
+    post:
+      consumes:
+      - application/json
+      description: Add a command rule
+      parameters:
+      - description: 'Proxy command rule''s cmd and remote address, eg: remote_addr:
+          127.0.0.1:8081, cmd: help'
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/main.Rule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Add Command Rule
+      tags:
+      - Rule
+  /api/rule/getAll:
+    get:
+      description: Get all command rules
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get all rules
+      tags:
+      - Rule
+  /api/rule/modify:
+    post:
+      consumes:
+      - application/json
+      description: Modify a command rule
+      parameters:
+      - description: Rule's struct
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/main.Rule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Modify Rule
+      tags:
+      - Rule
+  /api/rule/remove:
+    post:
+      consumes:
+      - application/json
+      description: Delete a command rule
+      parameters:
+      - description: Rule's cmd
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/main.DelRuleReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete Rule
+      tags:
+      - Rule
 swagger: "2.0"

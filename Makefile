@@ -17,7 +17,7 @@ pre:
 	mkdir -p ${RELEASE_DIR}/web
 
 web: pre
-	cd web && yarn build && cp -r dist ${RELEASE_DIR}/web
+	cd web && yarn && yarn build && cp -r dist ${RELEASE_DIR}/web
 
 build-linux:
 	CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -a -ldflags \

@@ -127,7 +127,7 @@
                 "summary": "Modify Selector",
                 "parameters": [
                     {
-                        "description": "Delete node",
+                        "description": "Load balance algorithm name",
                         "name": "selector",
                         "in": "body",
                         "required": true,
@@ -179,9 +179,160 @@
                     }
                 }
             }
+        },
+        "/api/rule/add": {
+            "post": {
+                "description": "Add a command rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Add Command Rule",
+                "parameters": [
+                    {
+                        "description": "Proxy command rule's cmd and remote address, eg: remote_addr: 127.0.0.1:8081, cmd: help",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Rule"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/rule/getAll": {
+            "get": {
+                "description": "Get all command rules",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Get all rules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/rule/modify": {
+            "post": {
+                "description": "Modify a command rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Modify Rule",
+                "parameters": [
+                    {
+                        "description": "Rule's struct",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Rule"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/rule/remove": {
+            "post": {
+                "description": "Delete a command rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Delete Rule",
+                "parameters": [
+                    {
+                        "description": "Rule's cmd",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.DelRuleReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "main.DelRuleReq": {
+            "type": "object",
+            "required": [
+                "cmd"
+            ],
+            "properties": {
+                "cmd": {
+                    "type": "string"
+                }
+            }
+        },
+        "main.Rule": {
+            "type": "object",
+            "required": [
+                "cmd",
+                "remote_addr"
+            ],
+            "properties": {
+                "cmd": {
+                    "type": "string"
+                },
+                "regex": {
+                    "type": "string"
+                },
+                "remote_addr": {
+                    "type": "string"
+                }
+            }
+        },
         "main.SelectorFuncName": {
             "type": "object",
             "required": [
@@ -239,6 +390,9 @@
                 "remote_addr"
             ],
             "properties": {
+                "id": {
+                    "type": "string"
+                },
                 "remote_addr": {
                     "type": "string"
                 }

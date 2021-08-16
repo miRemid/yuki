@@ -2,18 +2,45 @@
 
 > A reverse proxy gateway for go-cqhttp
 
-## Author
+## 安装
 
-👤 **miRemid**
+### Release
+在`Release`页面下载所需要的版本压缩包
 
-* Website: https://blog.zxykm.xyz
-* Github: [@miRemid](https://github.com/miRemid)
+### 自行编译
 
-## 🚀 Usage
+所需环境：
+- Nodejs, yarn
+- Go1.16
+- make
 
 ```sh
-./yuki_linux_x86-64 -d -p 8080
+git clone https://github.com/miRemid/yuki.git yuki
+cd yuki
+make web build-linux
+# make web build-windows
+cd release
 ```
+
+## 使用方式
+
+```sh
+./yuki_linux_amd64
+```
+默认端口8080
+
+```sh
+❯ ./yuki_linux_amd64 -h
+Usage of ./yuki_linux_amd64:
+  -d    debug mode
+  -p int
+        server port (default 8080)
+```
+
+启动完成后，打开浏览器输入`http://127.0.0.1:port`进入web管理界面
+
+## API列表
+Yuki内置了`swagger`文档，打开`http://127.0.0.1:port/swagger/index.html即可
 
 ## 
 
