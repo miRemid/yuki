@@ -39,7 +39,6 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 		return
 	}
 	g.mu.Lock()
-	defer g.mu.Unlock()
 	g.systemConfig.AdminQQ = config.AdminQQ
 	g.systemConfig.CQHTTPAddress = config.CQHTTPAddress
 	g.systemConfig.Prefix = config.Prefix
@@ -50,6 +49,7 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 		response.DatabaseAddError(ctx, "modify config failed: save disk failed")
 		return
 	}
+	g.mu.Unlock()
 	response.OK(ctx, "modify config success", nil)
 }
 

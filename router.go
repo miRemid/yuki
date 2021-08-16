@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 
@@ -16,7 +18,7 @@ func (g *Gateway) Router() *gin.Engine {
 	route.Use(gin.Recovery())
 
 	// reverse proxy
-	route.POST("/", g.checkSignature(), g.reverseProxy)
+	route.POST("/", g.checkSignature, g.reverseProxy)
 
 	// web static page route
 	route.Use(static.Serve("/", static.LocalFile("./web/dist", true)))
@@ -25,7 +27,8 @@ func (g *Gateway) Router() *gin.Engine {
 	// })
 
 	// swagger page
-	url := ginSwagger.URL("http://192.168.1.106:8080/swagger/doc.json") // The url pointing to API definition
+	ipv4, _ := g.getLocalIP()
+	url := ginSwagger.URL(fmt.Sprintf("http://%s%s/swagger/doc.json", ipv4, g.Addr)) // The url pointing to API definition
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	// web api routes

@@ -72,6 +72,16 @@ func (g *Gateway) loadRules(e bool) error {
 	return nil
 }
 
+// AddRule will add a command rule into the gateway
+// and save to the disk
+// @Summary Add Command Rule
+// @Description Add a command rule
+// @Tags Rule
+// @Accept json
+// @Produce json
+// @Param node body main.Rule true "Proxy command rule's cmd and remote address, eg: remote_addr: 127.0.0.1:8081, cmd: help"
+// @Success 200 {object} response.Response
+// @Router /api/rule/add [post]
 func (g *Gateway) AddRule(ctx *gin.Context) {
 	var rule = new(Rule)
 	if err := ctx.ShouldBind(rule); err != nil {
@@ -133,9 +143,18 @@ func (g *Gateway) AddRule(ctx *gin.Context) {
 }
 
 type DelRuleReq struct {
-	Cmd string `json:"cmd" form:"cmd"`
+	Cmd string `json:"cmd" form:"cmd" binding:"required"`
 }
 
+// DeleteRule will delete a command rule
+// @Summary Delete Rule
+// @Description Delete a command rule
+// @Tags Rule
+// @Accept json
+// @Produce json
+// @Param node body main.DelRuleReq true "Rule's cmd"
+// @Success 200 {object} response.Response
+// @Router /api/rule/remove [post]
 func (g *Gateway) DelRule(ctx *gin.Context) {
 	var req = new(DelRuleReq)
 	if err := ctx.ShouldBind(req); err != nil {
@@ -172,6 +191,13 @@ func (g *Gateway) DelRule(ctx *gin.Context) {
 	response.OK(ctx, "del rule success", nil)
 }
 
+// GetRules will return all rules
+// @Summary Get all rules
+// @Description Get all command rules
+// @Tags Rule
+// @Produce json
+// @Success 200 {object} response.Response
+// @Router /api/rule/getAll [get]
 func (g *Gateway) GetRules(ctx *gin.Context) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
@@ -207,12 +233,26 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 		g.dprintf("get ex error: %v", err)
 	}
 
+	rules := make([]interface{}, 0)
+	for key := range g.rules {
+		rules = append(rules, g.rules[key])
+	}
+
 	response.OK(ctx, "", gin.H{
-		"rules": g.rules,
+		"rules": rules,
 		"ex":    data,
 	})
 }
 
+// ModifyRule will modify a command rule
+// @Summary Modify Rule
+// @Description Modify a command rule
+// @Tags Rule
+// @Accept json
+// @Produce json
+// @Param node body main.Rule true "Rule's struct"
+// @Success 200 {object} response.Response
+// @Router /api/rule/modify [post]
 func (g *Gateway) ModifyRule(ctx *gin.Context) {
 	var rule = new(Rule)
 	if err := ctx.ShouldBind(rule); err != nil {

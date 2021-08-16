@@ -1,10 +1,48 @@
-# Yuki
+<h1 align="center">Welcome to Yuki 👋</h1>
 
-Yuki是一个适用于cqhttp的反向代理网关
+> A reverse proxy gateway for go-cqhttp
 
-# 功能
-- 解析命令，反向代理调用API
+## 安装
 
-通过配置可以对cqhttp发送的消息进行解析，分离命令和参数信息后，转发给真正的后端服务
+### Release
+在`Release`页面下载所需要的版本压缩包
 
-![Reverse Proxy](./assets/reverse_proxy.png)
+### 自行编译
+
+所需环境：
+- Nodejs, yarn
+- Go1.16
+- make
+
+```sh
+git clone https://github.com/miRemid/yuki.git yuki
+cd yuki
+make web build-linux
+# make web build-windows
+cd release
+```
+
+## 使用方式
+
+```sh
+./yuki_linux_amd64
+```
+默认端口8080
+
+```sh
+❯ ./yuki_linux_amd64 -h
+Usage of ./yuki_linux_amd64:
+  -d    debug mode
+  -p int
+        server port (default 8080)
+```
+
+启动完成后，打开浏览器输入`http://127.0.0.1:port`进入web管理界面
+
+## API列表
+Yuki内置了`swagger`文档，打开`http://127.0.0.1:port/swagger/index.html即可
+
+## 
+
+***
+_This README was generated with ❤️ by [readme-md-generator](https://github.com/kefranabg/readme-md-generator)_
