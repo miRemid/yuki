@@ -17,6 +17,7 @@ const (
 	SECRET_KEY    = "secret"
 	ADMINQQ_KEY   = "adminqq"
 	PREFIX_KEY    = "prefix"
+	FORMAT_KEY    = "format"
 )
 
 const (
@@ -70,6 +71,8 @@ func (g *Gateway) loadSystemConfigFromDisk() error {
 		g.systemConfig.Secret = string(entry.Value)
 		entry, _ = tx.Get(bucket, []byte(ADMINQQ_KEY))
 		g.systemConfig.AdminQQ = string(entry.Value)
+		entry, _ = tx.Get(bucket, []byte(FORMAT_KEY))
+		g.systemConfig.CommandNotFoundFormat = string(entry.Value)
 		items, _ := tx.LRange(bucket, []byte(PREFIX_KEY), 0, -1)
 		g.systemConfig.Prefix = make([]string, 0)
 		for _, item := range items {
@@ -89,6 +92,9 @@ func (g *Gateway) saveConfigToDisk() error {
 			return err
 		}
 		if err = tx.Put(bucket, []byte(ADMINQQ_KEY), []byte(g.systemConfig.Secret), 0); err != nil {
+			return err
+		}
+		if err = tx.Put(bucket, []byte(FORMAT_KEY), []byte(g.systemConfig.CommandNotFoundFormat), 0); err != nil {
 			return err
 		}
 		tx.Delete(bucket, []byte(PREFIX_KEY))

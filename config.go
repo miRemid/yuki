@@ -7,10 +7,11 @@ import (
 )
 
 type SystemConfig struct {
-	CQHTTPAddress string   `json:"cqhttp_address" form:"cqhttp_address" binding:"required"`
-	Secret        string   `json:"secret" form:"secret" binding:"required"`
-	AdminQQ       string   `json:"admin_qq" form:"admin_qq" binding:"required"`
-	Prefix        []string `json:"prefix" form:"prefix" binding:"required"`
+	CQHTTPAddress         string   `json:"cqhttp_address" form:"cqhttp_address" binding:"required"`
+	Secret                string   `json:"secret" form:"secret" binding:"required"`
+	AdminQQ               string   `json:"admin_qq" form:"admin_qq" binding:"required"`
+	Prefix                []string `json:"prefix" form:"prefix" binding:"required"`
+	CommandNotFoundFormat string   `json:"format" form:"format"`
 }
 
 func (g *Gateway) defaultSystemConfig() *SystemConfig {
@@ -19,6 +20,7 @@ func (g *Gateway) defaultSystemConfig() *SystemConfig {
 	config.AdminQQ = "1234567890"
 	config.Prefix = []string{"!"}
 	config.Secret = "yuki"
+	config.CommandNotFoundFormat = "command %s not found"
 	return config
 }
 
@@ -43,6 +45,9 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 	g.systemConfig.CQHTTPAddress = config.CQHTTPAddress
 	g.systemConfig.Prefix = config.Prefix
 	g.systemConfig.Secret = config.Secret
+	if config.CommandNotFoundFormat != "" {
+		g.systemConfig.CommandNotFoundFormat = config.CommandNotFoundFormat
+	}
 	// save to the database
 	if err := g.saveConfigToDisk(); err != nil {
 		g.dprintf("save config to disk failed: %v", err)

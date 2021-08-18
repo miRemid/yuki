@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import TextField from '@material-ui/core/TextField'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button } from '@material-ui/core'
-
+import cogoToast from 'cogo-toast'
 import { get, post } from '../../request'
 
 
@@ -22,28 +22,31 @@ const useStyles = makeStyles((theme) => ({
 }));
 export default function System() {
 
-    const [cqhttp, setCqhttp] = useState('')
-    const [admin, setAdmin] = useState('')
-    const [secret, setSecret] = useState('')
-    const [prefix, setPrefix] = useState('')
+    const [data, setData] = useState({
+        'cqhttp': '',
+        'admin': '',
+        'secret': '',
+        'prefix': '',
+        'format': ''
+    })
 
     const updateConfig = async () => {
-        const title = 'Update system config'
         try {
-            const arrs = prefix.split(';')
+            const arrs = data.prefix.split(';')
             arrs.forEach((item, i) => {
                 if (item === '') {
                     arrs.splice(i, 1)
                 }
             })
             const res = await post('/api/config/modify', {
-                'cqhttp_address': cqhttp,
-                'admin_qq': admin,
-                'secret': secret,
+                'cqhttp_address': data.cqhttp,
+                'admin_qq': data.admin,
+                'secret': data.secret,
                 'prefix': arrs,
+                'format': data.format
             })
-            if (res.data.code === 0) {
-
+            if (res.code === 0) {
+                cogoToast.success('Update config success')
             } else {
 
             }
@@ -55,21 +58,20 @@ export default function System() {
     const handleInput = (name) => {
         return e => {
             const value = e.target.value
-            console.log('name: ', name)
-            console.log('value: ', value)
             switch (name) {
                 case 'cqhttp':
-                    setCqhttp(value)
+                    setData({...data, 'cqhttp': value})
                     break
                 case 'admin':
-                    setAdmin(value)
+                    setData({...data, 'admin': value})
                     break
                 case 'secret':
-                    setSecret(value)
+                    setData({...data, 'secret': value})
                     break
                 case 'prefix':
-
-                    setPrefix(value)
+                    setData({...data, 'prefix': value})
+                case 'format':
+                    setData({...data, 'format': value})
                 default:
                     break;
             }
@@ -82,10 +84,14 @@ export default function System() {
         const fetchData = async () => {
             const res = await get('/api/config/get')
             if (res.code === 0) {
-                setAdmin(res.data.admin_qq)
-                setCqhttp(res.data.cqhttp_address)
-                setPrefix(res.data.prefix.join(';'))
-                setSecret(res.data.secret)
+                setData({
+                    ...data,
+                    'cqhttp': res.data.cqhttp_address,
+                    'admin': res.data.admin_qq,
+                    'secret': res.data.secret,
+                    'prefix': res.data.prefix.join(';'),
+                    'format': res.data.format
+                })
             }
         }
         fetchData()
@@ -98,13 +104,35 @@ export default function System() {
             {/* This is the system's configuration form */}
             <br />
             <div className={classess.formBox}>
-                <TextField
+                {
+                    Object.keys(data).map((v, i)=>{
+                        return <TextField 
+                            key={v}
+                            id={v}
+                            label={
+                                v === 'cqhttp' ? 'CQHTTP_ADDRESS' :
+                                v === 'admin' ? 'ADMIN_QQ' :
+                                v === 'prefix' ? 'PREFIX' :
+                                v === 'secret' ? 'SECRET' :
+                                'Command 404 format'
+                            }    
+                            variant="outlined"
+                            color="primary"
+                            onChange={handleInput(v)}
+                            value={data[v]}
+                            style={{
+                                width: v === 'format' ? '300px' : '200px'
+                            }}
+                        />
+                    })
+                }
+                {/* <TextField
                     id="cqhttp_address"
                     label="CQHTTP_ADDRESS"
                     variant="outlined"
                     color="secondary"
                     onChange={handleInput('cqhttp')}
-                    value={cqhttp}
+                    value={data.cqhttp}
                 />
                 <TextField
                     id="admin_qq"
@@ -112,7 +140,7 @@ export default function System() {
                     variant="outlined"
                     color="secondary"
                     onChange={handleInput('admin')}
-                    value={admin}
+                    value={data.admin}
                 />
                 <TextField
                     id="secret"
@@ -120,7 +148,7 @@ export default function System() {
                     variant="outlined"
                     color="secondary"
                     onChange={handleInput('secret')}
-                    value={secret}
+                    value={data.secret}
                 />
                 <TextField
                     id="prefix"
@@ -128,8 +156,8 @@ export default function System() {
                     variant="outlined"
                     color="secondary"
                     onChange={handleInput('prefix')}
-                    value={prefix}
-                />
+                    value={data.prefix}
+                /> */}
             </div>
             <Button variant="outlined" color="primary" onClick={updateConfig}>
                 Update
