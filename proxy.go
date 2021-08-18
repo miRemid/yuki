@@ -86,7 +86,7 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 	g.dprintf("Reverse Proxy to RemoteAddr: %v", target)
 	proxy := httputil.ReverseProxy{
 		Director:       tools.Director(target),
-		ModifyResponse: tools.ModifyResponse(),
+		ModifyResponse: tools.ModifyResponse("没有%s该命令哦~", cmd),
 	}
 	proxy.ServeHTTP(ctx.Writer, ctx.Request)
 }
