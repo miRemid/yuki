@@ -1,9 +1,11 @@
 package main
 
 import (
+	"embed"
 	"fmt"
+	"io/fs"
+	"net/http"
 
-	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -11,6 +13,16 @@ import (
 
 	_ "github.com/miRemid/yuki/docs"
 )
+
+//go:embed web/dist
+var local embed.FS
+
+func (g *Gateway) frontEnd(ctx *gin.Context) {
+	fsys := fs.FS(local)
+	contentStatic, _ := fs.Sub(fsys, "web/dist")
+	handler := http.FileServer(http.FS(contentStatic))
+	handler.ServeHTTP(ctx.Writer, ctx.Request)
+}
 
 func (g *Gateway) Router() *gin.Engine {
 	var route = gin.New()
@@ -20,16 +32,12 @@ func (g *Gateway) Router() *gin.Engine {
 	// reverse proxy
 	route.POST("/", g.checkSignature, g.reverseProxy)
 
-	// web static page route
-	route.Use(static.Serve("/", static.LocalFile("./web/dist", true)))
-	// route.GET("/", func(ctx *gin.Context) {
-	// 	ctx.String(http.StatusOK, "hello, welcome to the yuki!")
-	// })
-
 	// swagger page
 	ipv4, _ := g.getLocalIP()
 	url := ginSwagger.URL(fmt.Sprintf("http://%s%s/swagger/doc.json", ipv4, g.Addr)) // The url pointing to API definition
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+
+	route.NoRoute(g.frontEnd)
 
 	// web api routes
 	api := route.Group("/api")
