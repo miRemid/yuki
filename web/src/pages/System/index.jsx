@@ -58,6 +58,7 @@ export default function System() {
     const handleInput = (name) => {
         return e => {
             const value = e.target.value
+            console.log(name, value);
             switch (name) {
                 case 'cqhttp':
                     setData({...data, 'cqhttp': value})
@@ -70,11 +71,14 @@ export default function System() {
                     break
                 case 'prefix':
                     setData({...data, 'prefix': value})
+                    break
                 case 'format':
                     setData({...data, 'format': value})
+                    break
                 default:
                     break;
             }
+            console.log(data);
         }
     }
 
