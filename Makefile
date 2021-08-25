@@ -20,11 +20,14 @@ web: pre
 	cd web && yarn && yarn build && cp -r dist ${RELEASE_DIR}/web
 
 build-linux:
-	CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -a -ldflags \
+	CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -a -ldflags \
 	' -extldflags "-static"' \
 	-o ${RELEASE_DIR}/${LINUX_AMD64_NAME}
 
 build-windows:
-	CGO_ENABLE=0 GOOS=windows GOARCH=amd64 go build -a -ldflags \
+	CGO_ENABLE=0 GOOS=windows GOARCH=amd64 go build -mod=vendor -a -ldflags \
 	' -extldflags "-static"' \
 	-o ${RELEASE_DIR}/${WINDOWS_AMD64_NAME}
+
+build-docker:
+	docker build -t yuki .
