@@ -1,8 +1,9 @@
-name: build docker image
+name: docker
 
 on:
   push:
-    branches: ["dev"]
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -11,9 +12,9 @@ jobs:
       - name: Check out Repo
         uses: actions/checkout@v2
 
-      # - name: Get Version
-      #   id: get_version
-      #   run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
+      - name: Get Version
+        id: get_version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
       - name: Login to Docker hub
         uses: docker/login-action@v1
@@ -31,9 +32,11 @@ jobs:
         with:
           context: ./
           file: ./Dockerfile
+          platforms: linux/amd64
           push: true
-          # tags: ${{ secrets.DOCKER_HUB_USERNAME }}/yuki:${{ steps.get_version.outputs.VERSION }}
-          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/yuki:dev
+          tags: | 
+            ${{ secrets.DOCKER_HUB_USERNAME }}/yuki:${{ steps.get_version.outputs.VERSION }}
+            ${{ secrets.DOCKER_HUB_USERNAME }}/yuki:latest
       
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
