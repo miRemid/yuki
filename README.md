@@ -1,5 +1,7 @@
 <h1 align="center">Welcome to Yuki 👋</h1>
 
+[![build docker image](https://github.com/miRemid/yuki/actions/workflows/docker.yml/badge.svg)](https://github.com/miRemid/yuki/actions/workflows/docker.yml)
+
 > A reverse proxy gateway for go-cqhttp
 
 ## 安装
@@ -41,6 +43,13 @@ Usage of ./yuki_linux_amd64:
 
 ## API列表
 Yuki内置了`swagger`文档，打开`http://127.0.0.1:port/swagger/index.html即可
+
+## Docker
+现已支持Docker部署
+```shell
+docker pull kamir3mid/yuki:lates
+docker run --name yuki -p 8080:8080 -v ${PWD}/data:/data -d yuki
+```
 
 ## 
 

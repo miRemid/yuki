@@ -1,0 +1,7 @@
+release
+data
+web/node_modules
+web/dist
+
+.git
+.cache
