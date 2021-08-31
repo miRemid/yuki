@@ -37,13 +37,13 @@ jobs:
         if: matrix.os == 'windows-2019'
         run: |
           cd web && yarn && yarn build
-          cd .. && CGO_ENABLE=0 GOOS=windows GOARCH=amd64 go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_win_x86-64.exe
+          cd .. && go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_win_x86-64.exe
       
       - name: Build Linux App
         if: matrix.os == 'ubuntu-latest'
         run: |
           cd web && yarn && yarn build
-          cd .. && CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_linux_x86-64
+          cd .. && go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_linux_x86-64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
