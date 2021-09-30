@@ -3,5 +3,4 @@ data
 release
 node_modules
 
-vendor
 routes.json

@@ -222,8 +222,10 @@ func (g *Gateway) GetRules(ctx echo.Context) error {
 		}
 		return nil
 	}); err != nil {
-		g.dprintf("get ex error: %v", err)
-		return response.DatabaseGetError(ctx, "get rules failed")
+		g.dprintf("get ex error: %v, %T", err, err)
+		if err != nutsdb.ErrBucketEmpty && err != nutsdb.ErrKeyEmpty {
+			return response.DatabaseGetError(ctx, "get rules failed")
+		}
 	}
 
 	rules := make([]interface{}, 0)
