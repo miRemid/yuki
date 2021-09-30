@@ -212,6 +212,9 @@ func (g *Gateway) GetRules(ctx echo.Context) error {
 			g.dprintf("get %s node's cmd rules", key)
 			ss, err := tx.GetAll(key)
 			if err != nil {
+				if err == nutsdb.ErrBucketEmpty {
+					continue
+				}
 				return err
 			}
 			g.dprintf("find %d rules in %s", len(ss), key)
