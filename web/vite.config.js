@@ -6,16 +6,16 @@ import path from 'path'
 export default defineConfig({
   plugins: [reactRefresh()],
   resolve: {
-   alias: {
-     "@": path.resolve(__dirname, "./src"),
-     "~": path.resolve(__dirname, "./"),
-   } 
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "~": path.resolve(__dirname, "./"),
+    }
   },
   server: {
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://192.168.1.106:8080/api',
+        target: 'http://127.0.0.1:8080/api',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, '')
       }

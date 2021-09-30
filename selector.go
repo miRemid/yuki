@@ -3,10 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/xujiajun/nutsdb"
 
 	"github.com/miRemid/yuki/response"
@@ -90,27 +90,24 @@ func (g *Gateway) resetSelector(funcName string, nodes ...*selector.Node) (selec
 // @Produce json
 // @Param node body selector.Node true "Proxy node's remote address, eg: 127.0.0.1:8081"
 // @Success 200 {object} response.Response
-// @Router /api/node/add [post]
-func (g *Gateway) AddNode(ctx *gin.Context) {
+// @Router /api/node/ [post]
+func (g *Gateway) AddNode(ctx echo.Context) error {
 	var node = new(selector.Node)
-	if err := ctx.ShouldBind(node); err != nil {
+	if err := ctx.Bind(node); err != nil {
 		g.dprintf("add proxy node failed: %v", err)
-		response.BindError(ctx, "add node failed: binding failed")
-		return
+		return response.BindError(ctx, "add node failed: binding failed")
 	}
 	// check remote valid
 	u, ok := tools.CheckValidURL(node.RemoteAddr)
 	if !ok {
 		g.dprintf("%s is an invaild url address", node.RemoteAddr)
-		response.InvalidURLFormatError(ctx, "add node failed: invalid remote address")
-		return
+		return response.InvalidURLFormatError(ctx, "add node failed: invalid remote address")
 	}
 	node.RemoteAddr = u.String()
 	// check remote add exist
 	if err := g.selector.Check(node.RemoteAddr); err == nil {
 		g.dprintf("%s already exist", node.RemoteAddr)
-		response.AlreadyExisterror(ctx, "add node failed: node already exist")
-		return
+		return response.AlreadyExisterror(ctx, "add node failed: node already exist")
 	}
 	// save to the disk
 	node.ID = fmt.Sprintf("%d", time.Now().UnixNano())
@@ -120,12 +117,11 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 		return tx.Put(NODE_BUCKET, []byte(node.RemoteAddr), data, 0)
 	}); err != nil {
 		g.dprintf("add proxy node to database failed: %v", err)
-		response.DatabaseAddError(ctx, "add node failed: save to the database failed")
-		return
+		return response.DatabaseAddError(ctx, "add node failed: save to the database failed")
 	}
 	g.dprintf("add %s node into the selector", node.RemoteAddr)
 	g.selector.Add(node)
-	response.OK(ctx, "add node success", node)
+	return response.OK(ctx, "add node success", node)
 }
 
 // GetAllNodes will return all proxy nodes
@@ -134,15 +130,14 @@ func (g *Gateway) AddNode(ctx *gin.Context) {
 // @Tags Selector
 // @Produce json
 // @Success 200 {object} response.Response
-// @Router /api/node/getAll [get]
-func (g *Gateway) GetAllNodes(ctx *gin.Context) {
+// @Router /api/node/ [get]
+func (g *Gateway) GetAllNodes(ctx echo.Context) error {
 	nodes, err := g.selector.Getall()
 	if err != nil {
 		g.dprintf("get all nodes failed: %v", err)
-		response.GetError(ctx, "get all nodes failed")
-		return
+		return response.GetError(ctx, "get all nodes failed")
 	}
-	response.OK(ctx, "", gin.H{
+	return response.OK(ctx, "", gin.H{
 		"method": g.selector.Name(),
 		"nodes":  nodes,
 	})
@@ -156,18 +151,16 @@ func (g *Gateway) GetAllNodes(ctx *gin.Context) {
 // @Produce json
 // @Param node body selector.Node true "Node's remote address"
 // @Success 200 {object} response.Response
-// @Router /api/node/remove [post]
-func (g *Gateway) DeleteNode(ctx *gin.Context) {
+// @Router /api/node/ [delete]
+func (g *Gateway) DeleteNode(ctx echo.Context) error {
 	var node selector.Node
-	if err := ctx.ShouldBind(&node); err != nil {
+	if err := ctx.Bind(&node); err != nil {
 		g.dprintf("delete node failed: %v", err)
-		response.BindError(ctx, "delete node failed: binding failed")
-		return
+		return response.BindError(ctx, "delete node failed: binding failed")
 	}
 	_, ok := tools.CheckValidURL(node.RemoteAddr)
 	if !ok {
-		response.InvalidURLFormatError(ctx, "delete proxy node failed: invalid remote address")
-		return
+		return response.InvalidURLFormatError(ctx, "delete proxy node failed: invalid remote address")
 	}
 	rules := make([]string, 0)
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
@@ -194,8 +187,7 @@ func (g *Gateway) DeleteNode(ctx *gin.Context) {
 		return tx.Delete(NODE_BUCKET, []byte(node.RemoteAddr))
 	}); err != nil {
 		g.dprintf("delete proxy node failed: %v", err)
-		response.DelError(ctx, "delete node failed")
-		return
+		return response.DelError(ctx, "delete node failed")
 	}
 	// delete map
 	g.mu.Lock()
@@ -207,9 +199,7 @@ func (g *Gateway) DeleteNode(ctx *gin.Context) {
 		delete(g.rules, r)
 	}
 	g.mu.Unlock()
-	ctx.JSON(http.StatusOK, response.Response{
-		Code: response.StatusOK,
-	})
+	return response.OK(ctx, "Delete node success", nil)
 }
 
 type SelectorFuncName struct {
@@ -224,13 +214,12 @@ type SelectorFuncName struct {
 // @Produce json
 // @Param selector body main.SelectorFuncName true "Load balance algorithm name"
 // @Success 200 {object} response.Response
-// @Router /api/node/modifySelector [post]
-func (g *Gateway) ModifySelector(ctx *gin.Context) {
+// @Router /api/node/ [patch]
+func (g *Gateway) ModifySelector(ctx echo.Context) error {
 	var fun SelectorFuncName
-	if err := ctx.ShouldBind(&fun); err != nil {
+	if err := ctx.Bind(&fun); err != nil {
 		g.dprintf("modify selector failed: %v", err)
-		response.BindError(ctx, "modify selector faield: binding error")
-		return
+		return response.BindError(ctx, "modify selector faield: binding error")
 	}
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
 		nodes, _ := g.selector.Getall()
@@ -242,7 +231,7 @@ func (g *Gateway) ModifySelector(ctx *gin.Context) {
 		return tx.Put(selector.SELECTOR_BUCKET, []byte(selector.SELECTOR_KEY), []byte(fun.FuncName), 0)
 	}); err != nil {
 		g.dprintf("modify selector failed: %v", err)
-		response.ModError(ctx, "modify selector failed")
+		return response.ModError(ctx, "modify selector failed")
 	}
-	response.OK(ctx, "modify selector success", nil)
+	return response.OK(ctx, "modify selector success", nil)
 }

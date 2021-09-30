@@ -4,7 +4,7 @@
         "contact": {}
     },
     "paths": {
-        "/api/config/get": {
+        "/api/config/": {
             "get": {
                 "description": "Get gateway's system config",
                 "produces": [
@@ -22,10 +22,8 @@
                         }
                     }
                 }
-            }
-        },
-        "/api/config/modify": {
-            "post": {
+            },
+            "patch": {
                 "description": "Modify gateway's system config, include: \"CQHTTP_API_ADDRESS\", \"CQHTTP_SECRET\", \"ADMIN_QQ\", \"CMD PREFIX\"",
                 "consumes": [
                     "application/json"
@@ -58,7 +56,25 @@
                 }
             }
         },
-        "/api/node/add": {
+        "/api/node/": {
+            "get": {
+                "description": "Get all proxy nodes and current selector's function",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Selector"
+                ],
+                "summary": "Get all nodes",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Add a proxy remote node into the gateway's selector",
                 "consumes": [
@@ -90,18 +106,30 @@
                         }
                     }
                 }
-            }
-        },
-        "/api/node/getAll": {
-            "get": {
-                "description": "Get all proxy nodes and current selector's function",
+            },
+            "delete": {
+                "description": "Delete a proxy node",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Selector"
                 ],
-                "summary": "Get all nodes",
+                "summary": "Delete Node",
+                "parameters": [
+                    {
+                        "description": "Node's remote address",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/selector.Node"
+                        }
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -110,10 +138,8 @@
                         }
                     }
                 }
-            }
-        },
-        "/api/node/modifySelector": {
-            "post": {
+            },
+            "patch": {
                 "description": "Change gateway's selector method, supported: \"random\", \"round_robin\", \"hash\", \"weight\"",
                 "consumes": [
                     "application/json"
@@ -146,9 +172,27 @@
                 }
             }
         },
-        "/api/node/remove": {
-            "post": {
-                "description": "Delete a proxy node",
+        "/api/rule/": {
+            "get": {
+                "description": "Get all command rules",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Get all rules",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a command rule",
                 "consumes": [
                     "application/json"
                 ],
@@ -156,17 +200,49 @@
                     "application/json"
                 ],
                 "tags": [
-                    "Selector"
+                    "Rule"
                 ],
-                "summary": "Delete Node",
+                "summary": "Delete Rule",
                 "parameters": [
                     {
-                        "description": "Node's remote address",
+                        "description": "Rule's cmd",
                         "name": "node",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/selector.Node"
+                            "$ref": "#/definitions/main.DelRuleReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "description": "Modify a command rule",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Rule"
+                ],
+                "summary": "Modify Rule",
+                "parameters": [
+                    {
+                        "description": "Rule's struct",
+                        "name": "node",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.Rule"
                         }
                     }
                 ],
@@ -201,94 +277,6 @@
                         "required": true,
                         "schema": {
                             "$ref": "#/definitions/main.Rule"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/rule/getAll": {
-            "get": {
-                "description": "Get all command rules",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Rule"
-                ],
-                "summary": "Get all rules",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/rule/modify": {
-            "post": {
-                "description": "Modify a command rule",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Rule"
-                ],
-                "summary": "Modify Rule",
-                "parameters": [
-                    {
-                        "description": "Rule's struct",
-                        "name": "node",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.Rule"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/response.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/rule/remove": {
-            "post": {
-                "description": "Delete a command rule",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Rule"
-                ],
-                "summary": "Delete Rule",
-                "parameters": [
-                    {
-                        "description": "Rule's cmd",
-                        "name": "node",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.DelRuleReq"
                         }
                     }
                 ],
@@ -359,6 +347,9 @@
                 "cqhttp_address": {
                     "type": "string"
                 },
+                "format": {
+                    "type": "string"
+                },
                 "prefix": {
                     "type": "array",
                     "items": {
@@ -376,9 +367,7 @@
                 "code": {
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object"
-                },
+                "data": {},
                 "message": {
                     "type": "string"
                 }

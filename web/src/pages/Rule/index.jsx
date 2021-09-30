@@ -3,7 +3,7 @@ import { makeStyles } from '@material-ui/core'
 
 import { RuleList } from './components/RuleList'
 
-import { get, post } from '../../request'
+import { get, post, del, update } from '../../request'
 import cogoToast from 'cogo-toast'
 import { confirmAlert } from 'react-confirm-alert'
 
@@ -28,14 +28,14 @@ export default function index() {
   const [nodes, setNodes] = useState([])
 
   useEffect(async () => {
-    const res = await get('/api/node/getAll')
+    const res = await get('/api/node')
     setNodes(res.data.nodes)
-    const rules = await get('/api/rule/getAll')
+    const rules = await get('/api/rule')
     setRules(rules.data.rules)
   }, [])
 
   const addRule = async (cmd, remote) => {
-    const res = await post('/api/rule/add', {
+    const res = await post('/api/rule', {
       cmd: cmd,
       remote_addr: remote
     })
@@ -53,7 +53,7 @@ export default function index() {
         {
           label: 'Yes',
           onClick: async () => {
-            const res = await post('/api/rule/remove', {
+            const res = await del('/api/rule', {
               cmd: cmd
             })
             if (res.code === 0) {

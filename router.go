@@ -1,69 +1,53 @@
 package main
 
 import (
-	"embed"
-	"fmt"
-	"io/fs"
-	"net/http"
+	"encoding/json"
+	"io/ioutil"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	echoSwagger "github.com/swaggo/echo-swagger"
 
 	_ "github.com/miRemid/yuki/docs"
 )
 
-//go:embed web/dist
-var local embed.FS
-
-func (g *Gateway) frontEnd(ctx *gin.Context) {
-	fsys := fs.FS(local)
-	contentStatic, _ := fs.Sub(fsys, "web/dist")
-	handler := http.FileServer(http.FS(contentStatic))
-	handler.ServeHTTP(ctx.Writer, ctx.Request)
-}
-
-func (g *Gateway) Router() *gin.Engine {
-	var route = gin.New()
-	route.Use(gin.Logger())
-	route.Use(gin.Recovery())
+func (g *Gateway) Router() *echo.Echo {
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
 
 	// reverse proxy
-	route.POST("/", g.checkSignature, g.reverseProxy)
+	e.POST("/", g.reverseProxy, g.checkSignature())
 
-	// swagger page
-	ipv4, _ := g.getLocalIP()
-	url := ginSwagger.URL(fmt.Sprintf("http://%s%s/swagger/doc.json", ipv4, g.Addr)) // The url pointing to API definition
-	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	route.NoRoute(g.frontEnd)
+	e.Static("/", "web/dist")
 
-	// web api routes
-	api := route.Group("/api")
+	api := e.Group("/api")
 	{
-
 		config := api.Group("/config")
 		{
-			config.POST("/modify", g.ModifyConfig)
-			config.GET("/get", g.GetConfig)
+			config.POST("", g.ModifyConfig)
+			config.GET("", g.GetConfig)
 		}
-
 		node := api.Group("/node")
 		{
-			node.POST("/add", g.AddNode)
-			node.POST("/remove", g.DeleteNode)
-			node.GET("/getAll", g.GetAllNodes)
-			node.POST("/modifySelector", g.ModifySelector)
+			node.POST("", g.AddNode)
+			node.DELETE("", g.DeleteNode)
+			node.GET("", g.GetAllNodes)
+			// update
+			node.PATCH("", g.ModifySelector)
 		}
-
 		rule := api.Group("/rule")
 		{
-			rule.POST("/add", g.AddRule)
-			rule.POST("/remove", g.DelRule)
-			rule.POST("/modify", g.ModifyRule)
-			rule.GET("/getAll", g.GetRules)
+			rule.POST("", g.AddRule)
+			rule.GET("", g.GetRules)
+			rule.PATCH("", g.ModifyRule)
+			rule.DELETE("", g.DeleteRule)
 		}
 	}
-	return route
+	data, _ := json.MarshalIndent(e.Routes(), "", " ")
+	ioutil.WriteFile("routes.json", data, 0644)
+	return e
 }

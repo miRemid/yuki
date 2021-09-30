@@ -3,7 +3,7 @@ import TextField from '@material-ui/core/TextField'
 import { makeStyles } from '@material-ui/core/styles'
 import { Button } from '@material-ui/core'
 import cogoToast from 'cogo-toast'
-import { get, post } from '../../request'
+import { get, update } from '../../request'
 
 
 const useStyles = makeStyles((theme) => ({
@@ -38,7 +38,7 @@ export default function System() {
                     arrs.splice(i, 1)
                 }
             })
-            const res = await post('/api/config/modify', {
+            const res = await update('/api/config', {
                 'cqhttp_address': data.cqhttp,
                 'admin_qq': data.admin,
                 'secret': data.secret,
@@ -61,19 +61,19 @@ export default function System() {
             console.log(name, value);
             switch (name) {
                 case 'cqhttp':
-                    setData({...data, 'cqhttp': value})
+                    setData({ ...data, 'cqhttp': value })
                     break
                 case 'admin':
-                    setData({...data, 'admin': value})
+                    setData({ ...data, 'admin': value })
                     break
                 case 'secret':
-                    setData({...data, 'secret': value})
+                    setData({ ...data, 'secret': value })
                     break
                 case 'prefix':
-                    setData({...data, 'prefix': value})
+                    setData({ ...data, 'prefix': value })
                     break
                 case 'format':
-                    setData({...data, 'format': value})
+                    setData({ ...data, 'format': value })
                     break
                 default:
                     break;
@@ -86,7 +86,7 @@ export default function System() {
 
     useEffect(() => {
         const fetchData = async () => {
-            const res = await get('/api/config/get')
+            const res = await get('/api/config')
             if (res.code === 0) {
                 setData({
                     ...data,
@@ -109,17 +109,17 @@ export default function System() {
             <br />
             <div className={classess.formBox}>
                 {
-                    Object.keys(data).map((v, i)=>{
-                        return <TextField 
+                    Object.keys(data).map((v, i) => {
+                        return <TextField
                             key={v}
                             id={v}
                             label={
                                 v === 'cqhttp' ? 'CQHTTP_ADDRESS' :
-                                v === 'admin' ? 'ADMIN_QQ' :
-                                v === 'prefix' ? 'PREFIX' :
-                                v === 'secret' ? 'SECRET' :
-                                'Command 404 format'
-                            }    
+                                    v === 'admin' ? 'ADMIN_QQ' :
+                                        v === 'prefix' ? 'PREFIX' :
+                                            v === 'secret' ? 'SECRET' :
+                                                'Command 404 format'
+                            }
                             variant="outlined"
                             color="primary"
                             onChange={handleInput(v)}

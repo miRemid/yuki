@@ -76,3 +76,37 @@ export const post = (url, params = {}, headers = {
         })
     })
 }
+
+export const del = (url, params = {}, headers = {
+    'Content-Type': 'application/json'
+}) => {
+    return new Promise((resolve, reject) => {
+        _request({
+            url: url,
+            method: 'DELETE',
+            params: params,
+            headers: headers
+        }).then(res => {
+            resolve(res)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}
+
+export const update = (url, params = {}, headers = {
+    'Content-Type': 'application/json'
+}) => {
+    return new Promise((resolve, reject) => {
+        _request({
+            url: url,
+            method: 'PATCH',
+            data: params,
+            headers: headers
+        }).then(res => {
+            resolve(res)
+        }).catch(err => {
+            reject(err)
+        })
+    })
+}

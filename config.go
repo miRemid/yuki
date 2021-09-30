@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 
 	"github.com/miRemid/yuki/response"
 )
@@ -32,13 +32,12 @@ func (g *Gateway) defaultSystemConfig() *SystemConfig {
 // @Produce json
 // @Param config body main.SystemConfig true "config struct"
 // @Success 200 {object} response.Response
-// @Router /api/config/modify [post]
-func (g *Gateway) ModifyConfig(ctx *gin.Context) {
+// @Router /api/config/ [patch]
+func (g *Gateway) ModifyConfig(ctx echo.Context) error {
 	var config SystemConfig
-	if err := ctx.ShouldBindJSON(&config); err != nil {
+	if err := ctx.Bind(&config); err != nil {
 		g.dprintf("modify config binding failed: %v", err)
-		response.BindError(ctx, "modify config failed: bind error")
-		return
+		return response.BindError(ctx, "modify config failed: bind error")
 	}
 	g.mu.Lock()
 	g.systemConfig.AdminQQ = config.AdminQQ
@@ -51,11 +50,10 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 	// save to the database
 	if err := g.saveConfigToDisk(); err != nil {
 		g.dprintf("save config to disk failed: %v", err)
-		response.DatabaseAddError(ctx, "modify config failed: save disk failed")
-		return
+		return response.DatabaseAddError(ctx, "modify config failed: save disk failed")
 	}
 	g.mu.Unlock()
-	response.OK(ctx, "modify config success", nil)
+	return response.OK(ctx, "modify config success", nil)
 }
 
 // GetConfig
@@ -64,9 +62,9 @@ func (g *Gateway) ModifyConfig(ctx *gin.Context) {
 // @Tags config
 // @Produce json
 // @Success 200 {object} response.Response
-// @Router /api/config/get [get]
-func (g *Gateway) GetConfig(ctx *gin.Context) {
+// @Router /api/config/ [get]
+func (g *Gateway) GetConfig(ctx echo.Context) error {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
-	response.OK(ctx, "", g.systemConfig)
+	return response.OK(ctx, "", g.systemConfig)
 }
