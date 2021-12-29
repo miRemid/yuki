@@ -39,15 +39,15 @@ Usage of ./yuki_linux_amd64:
         server port (default 8080)
 ```
 
-启动完成后，打开浏览器输入`http://127.0.0.1:port`进入web管理界面
+启动完成后，打开浏览器输入`http://127.0.0.1:8080`进入web管理界面
 
 ## API列表
-Yuki内置了`swagger`文档，打开`http://127.0.0.1:port/swagger/index.html即可
+Yuki内置了`swagger`文档，打开`http://127.0.0.1:8080/swagger/index.html即可
 
 ## Docker
 现已支持Docker部署
 ```shell
-docker pull kamir3mid/yuki:lates
+docker pull kamir3mid/yuki:latest
 docker run --name yuki -p 8080:8080 -v ${PWD}/data:/data -d yuki
 ```
 

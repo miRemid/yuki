@@ -12,7 +12,7 @@ import {
 } from './components/NodeList'
 
 import {
-  get, post
+  get, post, del, update
 } from '../../request'
 
 const useStyles = makeStyles((theme) => ({
@@ -40,7 +40,7 @@ export default function index() {
   }
 
   const updateMethod = async () => {
-    const res = await post('/api/node/modifySelector', {
+    const res = await update('/api/node', {
       'func_name': method
     })
     if (res.code === 0) {
@@ -49,7 +49,7 @@ export default function index() {
   }
 
   const addProxyNode = async (remote) => {
-    const res = await post('/api/node/add', {
+    const res = await post('/api/node', {
       "remote_addr": remote
     })
     if (res.code === 0) {
@@ -66,7 +66,7 @@ export default function index() {
         {
           label: 'Yes',
           onClick: async () => {
-            const res = await post('/api/node/remove', {
+            const res = await del('/api/node', {
               "remote_addr": remote
             })
             if (res.code === 0) {
@@ -85,7 +85,7 @@ export default function index() {
 
   useEffect(async () => {
     // fetch from backend
-    const res = await get('/api/node/getAll')
+    const res = await get('/api/node')
     setNodes(res.data.nodes)
     setMethod(res.data.method)
   }, [])

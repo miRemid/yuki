@@ -10,14 +10,14 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/tidwall/gjson"
 
 	"github.com/miRemid/yuki/message"
 	"github.com/miRemid/yuki/tools"
 )
 
-func (g *Gateway) reverseProxy(ctx *gin.Context) {
+func (g *Gateway) reverseProxy(ctx echo.Context) error {
 	var (
 		data  bytes.Buffer
 		err   error
@@ -25,7 +25,8 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 		cmd   string
 		param string
 	)
-	body := ctx.Request.Body
+	req := ctx.Request()
+	body := req.Body
 	io.Copy(&data, body)
 	body.Close()
 	post_type := gjson.GetBytes(data.Bytes(), "post_type").String()
@@ -38,8 +39,7 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 		if msg, err = g.checkPrefix(raw_message); err != nil {
 			// reject
 			g.dprintf("check prefix error: %v", err)
-			ctx.Status(204)
-			return
+			return ctx.NoContent(204)
 		} else {
 			splits := strings.Split(msg, " ")
 			cmd = splits[0]
@@ -56,18 +56,16 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 		cmd = "request"
 		g.dprintf("receive request message")
 	default:
-		ctx.Status(204)
-		return
+		return ctx.NoContent(204)
 	}
 
-	ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(data.Bytes()))
+	req.Body = ioutil.NopCloser(bytes.NewReader(data.Bytes()))
 	g.mu.RLock()
-	node, err := g.selector.Peek(ctx.ClientIP())
+	node, err := g.selector.Peek(ctx.RealIP())
 	g.mu.RUnlock()
 	if err != nil {
 		g.dprintf("peek node error: %v", err)
-		ctx.Status(204)
-		return
+		return ctx.NoContent(204)
 	}
 	targetURL := node.RemoteAddr
 	// check rules
@@ -88,7 +86,8 @@ func (g *Gateway) reverseProxy(ctx *gin.Context) {
 		Director:       tools.Director(target),
 		ModifyResponse: tools.ModifyResponse("没有%s该命令哦~", cmd),
 	}
-	proxy.ServeHTTP(ctx.Writer, ctx.Request)
+	proxy.ServeHTTP(ctx.Response().Writer, req)
+	return nil
 }
 
 func (g *Gateway) checkPrefix(message string) (string, error) {

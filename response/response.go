@@ -3,7 +3,7 @@ package response
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 type Response struct {
@@ -12,67 +12,67 @@ type Response struct {
 	Data    interface{} `json:"data"`
 }
 
-func OK(ctx *gin.Context, message string, data interface{}) {
-	ctx.JSON(http.StatusOK, Response{
+func OK(ctx echo.Context, message string, data interface{}) error {
+	return ctx.JSON(http.StatusOK, Response{
 		Code:    StatusOK,
 		Message: message,
 		Data:    data,
 	})
 }
-func Error(ctx *gin.Context, code StatusCode, message string) {
-	ctx.JSON(http.StatusOK, Response{
+func Error(ctx echo.Context, code StatusCode, message string) error {
+	return ctx.JSON(http.StatusOK, Response{
 		Code:    code,
 		Message: message,
 	})
 }
-func BindError(ctx *gin.Context, message string) {
-	Error(ctx, StatusBindError, message)
+func BindError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusBindError, message)
 }
 
-func NotExistError(ctx *gin.Context, message string) {
-	Error(ctx, StatusNotExist, message)
+func NotExistError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusNotExist, message)
 }
 
-func AlreadyExisterror(ctx *gin.Context, message string) {
-	Error(ctx, StatusAlreadyExist, message)
+func AlreadyExisterror(ctx echo.Context, message string) error {
+	return Error(ctx, StatusAlreadyExist, message)
 }
 
-func RegexpCompileError(ctx *gin.Context, message string) {
-	Error(ctx, StatusRegCompileError, message)
+func RegexpCompileError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusRegCompileError, message)
 }
 
-func AddError(ctx *gin.Context, msg string) {
-	Error(ctx, StatusAddError, msg)
+func AddError(ctx echo.Context, msg string) error {
+	return Error(ctx, StatusAddError, msg)
 }
 
-func DelError(ctx *gin.Context, message string) {
-	Error(ctx, StatusDelError, message)
+func DelError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusDelError, message)
 }
 
-func ModError(ctx *gin.Context, message string) {
-	Error(ctx, StatusModError, message)
+func ModError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusModError, message)
 }
 
-func GetError(ctx *gin.Context, message string) {
-	Error(ctx, StatusGetError, message)
+func GetError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusGetError, message)
 }
 
-func DatabaseAddError(ctx *gin.Context, message string) {
-	Error(ctx, StatusAddDiskError, message)
+func DatabaseAddError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusAddDiskError, message)
 }
 
-func DatabaseDelError(ctx *gin.Context, message string) {
-	Error(ctx, StatusDelDiskError, message)
+func DatabaseDelError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusDelDiskError, message)
 }
 
-func DatabaseModError(ctx *gin.Context, message string) {
-	Error(ctx, StatusModDiskError, message)
+func DatabaseModError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusModDiskError, message)
 }
 
-func DatabaseGetError(ctx *gin.Context, message string) {
-	Error(ctx, StatusGetDiskError, message)
+func DatabaseGetError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusGetDiskError, message)
 }
 
-func InvalidURLFormatError(ctx *gin.Context, message string) {
-	Error(ctx, StatusInvalidURLFormat, message)
+func InvalidURLFormatError(ctx echo.Context, message string) error {
+	return Error(ctx, StatusInvalidURLFormat, message)
 }

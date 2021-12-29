@@ -20,6 +20,7 @@ RUN CGO_ENABLE=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -a -ldflags \
 FROM alpine:3.14
 
 COPY --from=golang /yuki/yuki_linux_amd64 /yuki_linux_amd64
+COPY --from=golang /yuki/web/dist /web/dist
 COPY --from=golang /yuki/docs /docs
 
 WORKDIR /

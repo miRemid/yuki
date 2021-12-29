@@ -31,6 +31,8 @@ definitions:
         type: string
       cqhttp_address:
         type: string
+      format:
+        type: string
       prefix:
         items:
           type: string
@@ -47,8 +49,7 @@ definitions:
     properties:
       code:
         type: integer
-      data:
-        type: object
+      data: {}
       message:
         type: string
     type: object
@@ -64,7 +65,7 @@ definitions:
 info:
   contact: {}
 paths:
-  /api/config/get:
+  /api/config/:
     get:
       description: Get gateway's system config
       produces:
@@ -77,8 +78,7 @@ paths:
       summary: Get system config
       tags:
       - config
-  /api/config/modify:
-    post:
+    patch:
       consumes:
       - application/json
       description: 'Modify gateway''s system config, include: "CQHTTP_API_ADDRESS",
@@ -100,13 +100,13 @@ paths:
       summary: Modify config
       tags:
       - config
-  /api/node/add:
-    post:
+  /api/node/:
+    delete:
       consumes:
       - application/json
-      description: Add a proxy remote node into the gateway's selector
+      description: Delete a proxy node
       parameters:
-      - description: 'Proxy node''s remote address, eg: 127.0.0.1:8081'
+      - description: Node's remote address
         in: body
         name: node
         required: true
@@ -119,10 +119,9 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response'
-      summary: Add Proxy Node
+      summary: Delete Node
       tags:
       - Selector
-  /api/node/getAll:
     get:
       description: Get all proxy nodes and current selector's function
       produces:
@@ -135,8 +134,7 @@ paths:
       summary: Get all nodes
       tags:
       - Selector
-  /api/node/modifySelector:
-    post:
+    patch:
       consumes:
       - application/json
       description: 'Change gateway''s selector method, supported: "random", "round_robin",
@@ -158,13 +156,12 @@ paths:
       summary: Modify Selector
       tags:
       - Selector
-  /api/node/remove:
     post:
       consumes:
       - application/json
-      description: Delete a proxy node
+      description: Add a proxy remote node into the gateway's selector
       parameters:
-      - description: Node's remote address
+      - description: 'Proxy node''s remote address, eg: 127.0.0.1:8081'
         in: body
         name: node
         required: true
@@ -177,9 +174,64 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/response.Response'
-      summary: Delete Node
+      summary: Add Proxy Node
       tags:
       - Selector
+  /api/rule/:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a command rule
+      parameters:
+      - description: Rule's cmd
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/main.DelRuleReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete Rule
+      tags:
+      - Rule
+    get:
+      description: Get all command rules
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get all rules
+      tags:
+      - Rule
+    patch:
+      consumes:
+      - application/json
+      description: Modify a command rule
+      parameters:
+      - description: Rule's struct
+        in: body
+        name: node
+        required: true
+        schema:
+          $ref: '#/definitions/main.Rule'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Modify Rule
+      tags:
+      - Rule
   /api/rule/add:
     post:
       consumes:
@@ -201,63 +253,6 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Add Command Rule
-      tags:
-      - Rule
-  /api/rule/getAll:
-    get:
-      description: Get all command rules
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Get all rules
-      tags:
-      - Rule
-  /api/rule/modify:
-    post:
-      consumes:
-      - application/json
-      description: Modify a command rule
-      parameters:
-      - description: Rule's struct
-        in: body
-        name: node
-        required: true
-        schema:
-          $ref: '#/definitions/main.Rule'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Modify Rule
-      tags:
-      - Rule
-  /api/rule/remove:
-    post:
-      consumes:
-      - application/json
-      description: Delete a command rule
-      parameters:
-      - description: Rule's cmd
-        in: body
-        name: node
-        required: true
-        schema:
-          $ref: '#/definitions/main.DelRuleReq'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/response.Response'
-      summary: Delete Rule
       tags:
       - Rule
 swagger: "2.0"

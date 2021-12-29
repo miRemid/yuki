@@ -36,12 +36,16 @@ jobs:
         run: |
           cd web && yarn && yarn build
           cd .. && go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_win_x86-64.exe
+          cd release && tar -cvzf yuki_win_x86-64.tar.gz yuki_win_x86-64.exe ../web/dist
+          rm release/yuki_linux_amd64 && cd ..
       
       - name: Build Linux App
         if: matrix.os == 'ubuntu-latest'
         run: |
           cd web && yarn && yarn build
-          cd .. && go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_linux_x86-64
+          cd .. && go build -mod=vendor -a -ldflags ' -extldflags "-static"' -o release/yuki_linux_amd64
+          cd release && tar -cvzf yuki_linux_amd64.tar.gz yuki_linux_amd64 ../web/dist
+          rm release/yuki_linux_amd64 && cd ..
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2

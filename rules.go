@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"github.com/miRemid/yuki/response"
 	"github.com/miRemid/yuki/tools"
 	"github.com/xujiajun/nutsdb"
@@ -82,25 +83,22 @@ func (g *Gateway) loadRules(e bool) error {
 // @Param node body main.Rule true "Proxy command rule's cmd and remote address, eg: remote_addr: 127.0.0.1:8081, cmd: help"
 // @Success 200 {object} response.Response
 // @Router /api/rule/add [post]
-func (g *Gateway) AddRule(ctx *gin.Context) {
+func (g *Gateway) AddRule(ctx echo.Context) error {
 	var rule = new(Rule)
-	if err := ctx.ShouldBind(rule); err != nil {
-		response.BindError(ctx, "add rule failed: bind failed")
-		return
+	if err := ctx.Bind(rule); err != nil {
+		return response.BindError(ctx, "add rule failed: bind failed")
 	}
 	u, t := tools.CheckValidURL(rule.RemoteAddr)
 	if !t {
 		g.dprintf("%s is an invalid url address", rule.RemoteAddr)
-		response.InvalidURLFormatError(ctx, "add rule failed: invalid remote address")
-		return
+		return response.InvalidURLFormatError(ctx, "add rule failed: invalid remote address")
 	}
 	rule.RemoteAddr = u.String()
 	if rule.Regex != "" {
 		reg, err := regexp.Compile(rule.Regex)
 		if err != nil {
 			g.dprintf("regexp compile error: %v", err)
-			response.RegexpCompileError(ctx, "add rule failed: regexp invalid")
-			return
+			return response.RegexpCompileError(ctx, "add rule failed: regexp invalid")
 		}
 		rule.reg = reg
 	}
@@ -110,15 +108,13 @@ func (g *Gateway) AddRule(ctx *gin.Context) {
 	g.dprintf("check rule from cache")
 	if _, ok := g.rules[rule.Cmd]; ok {
 		g.dprintf("%s rule already exist", rule.Cmd)
-		response.AlreadyExisterror(ctx, "add rule failed: already exist")
-		return
+		return response.AlreadyExisterror(ctx, "add rule failed: already exist")
 	}
 	// 2. check remote exist
 	g.dprintf("check %s proxy node", rule.RemoteAddr)
 	if err := g.selector.Check(rule.RemoteAddr); err != nil {
 		g.dprintf("proxy node %s not found", rule.RemoteAddr)
-		response.NotExistError(ctx, "add rule failed: proxy node not found")
-		return
+		return response.NotExistError(ctx, "add rule failed: proxy node not found")
 	}
 	if err := g.db.Update(func(tx *nutsdb.Tx) error {
 		data, err := json.Marshal(rule)
@@ -134,12 +130,11 @@ func (g *Gateway) AddRule(ctx *gin.Context) {
 		return tx.Put(RULE_BUCKET, []byte(rule.Cmd), data, 0)
 	}); err != nil {
 		g.dprintf("save rule to database failed: %v", err)
-		response.DatabaseAddError(ctx, "add rule failed: save to the database failed")
-		return
+		return response.DatabaseAddError(ctx, "add rule failed: save to the database failed")
 	}
 	g.dprintf("add %s cmd into the cache", rule.Cmd)
 	g.rules[rule.Cmd] = rule
-	response.OK(ctx, "add success", nil)
+	return response.OK(ctx, "add success", nil)
 }
 
 type DelRuleReq struct {
@@ -154,12 +149,11 @@ type DelRuleReq struct {
 // @Produce json
 // @Param node body main.DelRuleReq true "Rule's cmd"
 // @Success 200 {object} response.Response
-// @Router /api/rule/remove [post]
-func (g *Gateway) DelRule(ctx *gin.Context) {
+// @Router /api/rule/ [delete]
+func (g *Gateway) DeleteRule(ctx echo.Context) error {
 	var req = new(DelRuleReq)
-	if err := ctx.ShouldBind(req); err != nil {
-		response.BindError(ctx, "del rule failed")
-		return
+	if err := ctx.Bind(req); err != nil {
+		return response.BindError(ctx, "del rule failed")
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -169,8 +163,7 @@ func (g *Gateway) DelRule(ctx *gin.Context) {
 	// 1. check exists
 	if _, ok := g.rules[node.Cmd]; !ok {
 		g.dprintf("remove " + node.Cmd + " rule failed, not exist")
-		response.NotExistError(ctx, "delete rule failed: not exist")
-		return
+		return response.NotExistError(ctx, "delete rule failed: not exist")
 	}
 
 	// 2. del database
@@ -183,12 +176,11 @@ func (g *Gateway) DelRule(ctx *gin.Context) {
 		return tx.Delete(RULE_BUCKET, []byte(req.Cmd))
 	}); err != nil {
 		g.dprintf("delete rule from database failed: %v", err)
-		response.DatabaseDelError(ctx, "del rule failed: database delete failed")
-		return
+		return response.DatabaseDelError(ctx, "del rule failed: database delete failed")
 	}
 	// 3. del map
 	delete(g.rules, req.Cmd)
-	response.OK(ctx, "del rule success", nil)
+	return response.OK(ctx, "del rule success", nil)
 }
 
 // GetRules will return all rules
@@ -197,8 +189,8 @@ func (g *Gateway) DelRule(ctx *gin.Context) {
 // @Tags Rule
 // @Produce json
 // @Success 200 {object} response.Response
-// @Router /api/rule/getAll [get]
-func (g *Gateway) GetRules(ctx *gin.Context) {
+// @Router /api/rule/ [get]
+func (g *Gateway) GetRules(ctx echo.Context) error {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -220,6 +212,9 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 			g.dprintf("get %s node's cmd rules", key)
 			ss, err := tx.GetAll(key)
 			if err != nil {
+				if err == nutsdb.ErrBucketEmpty {
+					continue
+				}
 				return err
 			}
 			g.dprintf("find %d rules in %s", len(ss), key)
@@ -230,7 +225,10 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 		}
 		return nil
 	}); err != nil {
-		g.dprintf("get ex error: %v", err)
+		g.dprintf("get ex error: %v, %T", err, err)
+		if err != nutsdb.ErrBucketEmpty && err != nutsdb.ErrKeyEmpty {
+			return response.DatabaseGetError(ctx, "get rules failed")
+		}
 	}
 
 	rules := make([]interface{}, 0)
@@ -238,7 +236,7 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 		rules = append(rules, g.rules[key])
 	}
 
-	response.OK(ctx, "", gin.H{
+	return response.OK(ctx, "", gin.H{
 		"rules": rules,
 		"ex":    data,
 	})
@@ -252,18 +250,16 @@ func (g *Gateway) GetRules(ctx *gin.Context) {
 // @Produce json
 // @Param node body main.Rule true "Rule's struct"
 // @Success 200 {object} response.Response
-// @Router /api/rule/modify [post]
-func (g *Gateway) ModifyRule(ctx *gin.Context) {
+// @Router /api/rule/ [patch]
+func (g *Gateway) ModifyRule(ctx echo.Context) error {
 	var rule = new(Rule)
-	if err := ctx.ShouldBind(rule); err != nil {
-		response.BindError(ctx, "modify rule failed")
-		return
+	if err := ctx.Bind(rule); err != nil {
+		return response.BindError(ctx, "modify rule failed")
 	}
 
 	if rule.Regex != "" {
 		if r, err := regexp.Compile(rule.Regex); err != nil {
-			response.RegexpCompileError(ctx, "rule regexp compile failed")
-			return
+			return response.RegexpCompileError(ctx, "rule regexp compile failed")
 		} else {
 			rule.reg = r
 		}
@@ -275,8 +271,7 @@ func (g *Gateway) ModifyRule(ctx *gin.Context) {
 	// 1. check exists
 	if _, ok := g.rules[rule.Cmd]; !ok {
 		g.dprintf("modify " + rule.Cmd + " rule failed, not exist")
-		response.NotExistError(ctx, "modify rule failed")
-		return
+		return response.NotExistError(ctx, "modify rule failed")
 	}
 
 	// 2. modify database
@@ -289,5 +284,5 @@ func (g *Gateway) ModifyRule(ctx *gin.Context) {
 	}
 	// 3. modify map
 	g.rules[rule.Cmd] = rule
-	response.OK(ctx, "modify rule success", nil)
+	return response.OK(ctx, "modify rule success", nil)
 }

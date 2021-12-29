@@ -4,7 +4,7 @@
 
 <img align="right" width="180px" src="https://raw.githubusercontent.com/swaggo/swag/master/assets/swaggo.png">
 
-[![Travis Status](https://img.shields.io/travis/swaggo/swag/master.svg)](https://travis-ci.org/swaggo/swag)
+[![Build Status](https://github.com/swaggo/swag/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/features/actions)
 [![Coverage Status](https://img.shields.io/codecov/c/github/swaggo/swag/master.svg)](https://codecov.io/gh/swaggo/swag)
 [![Go Report Card](https://goreportcard.com/badge/github.com/swaggo/swag)](https://goreportcard.com/report/github.com/swaggo/swag)
 [![codebeat badge](https://codebeat.co/badges/71e2f5e5-9e6b-405d-baf9-7cc8b5037330)](https://codebeat.co/projects/github-com-swaggo-swag-master)
@@ -38,6 +38,7 @@ Swag converts Go annotations to Swagger Documentation 2.0. We've created a varie
 	- [Add extension info to struct field](#add-extension-info-to-struct-field)
 	- [Rename model to display](#rename-model-to-display)
 	- [How to using security annotations](#how-to-using-security-annotations)
+	- [Add a description for enum items](#add-a-description-for-enum-items)
 - [About the Project](#about-the-project)
 
 ## Getting started
@@ -47,8 +48,11 @@ Swag converts Go annotations to Swagger Documentation 2.0. We've created a varie
 2. Download swag by using:
 ```sh
 $ go get -u github.com/swaggo/swag/cmd/swag
+
+# 1.16 or newer
+$ go install github.com/swaggo/swag/cmd/swag@latest
 ```
-To build from source you need [Go](https://golang.org/dl/) (1.9 or newer).
+To build from source you need [Go](https://golang.org/dl/) (1.13 or newer).
 
 Or download a pre-compiled binary from the [release page](https://github.com/swaggo/swag/releases).
 
@@ -575,6 +579,17 @@ type DeepObject struct { //in `proto` package
 // @Router /examples/groups/{group_id}/accounts/{account_id} [get]
 ```
 
+### Add multiple paths
+
+```go
+/// ...
+// @Param group_id path int true "Group ID"
+// @Param user_id path int true "User ID"
+// ...
+// @Router /examples/groups/{group_id}/user/{user_id}/address [put]
+// @Router /examples/user/{user_id}/address [put]
+```
+
 ### Example value of struct
 
 ```go
@@ -674,7 +689,7 @@ type Account struct {
 
 ```go
 type Account struct {
-    ID   string    `json:"id"   extensions:"x-nullable,x-abc=def"` // extensions fields must start with "x-"
+    ID   string    `json:"id"   extensions:"x-nullable,x-abc=def,!x-omitempty"` // extensions fields must start with "x-"
 }
 ```
 
@@ -687,7 +702,8 @@ generate swagger doc as follows:
         "id": {
             "type": "string",
             "x-nullable": true,
-            "x-abc": "def"
+            "x-abc": "def",
+            "x-omitempty": false
         }
     }
 }
@@ -724,6 +740,17 @@ Make it AND condition
 ```go
 // @Security ApiKeyAuth
 // @Security OAuth2Application[write, admin]
+```
+
+### Add a description for enum items
+
+```go
+type Example struct {
+	// Sort order:
+	// * asc - Ascending, from A to Z.
+	// * desc - Descending, from Z to A.
+	Order string `enums:"asc,desc"`
+}
 ```
 
 ## About the Project

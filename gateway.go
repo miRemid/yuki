@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"net"
 	"net/http"
 	"sync"
@@ -48,28 +47,6 @@ func NewGateway(addr string, debug bool) (*Gateway, error) {
 		}
 	}
 	return g, nil
-}
-
-func (g *Gateway) getLocalIP() (ipv4 string, err error) {
-	var (
-		addrs   []net.Addr
-		addr    net.Addr
-		ipNet   *net.IPNet
-		isIpNet bool
-	)
-	if addrs, err = net.InterfaceAddrs(); err != nil {
-		return
-	}
-	for _, addr = range addrs {
-		if ipNet, isIpNet = addr.(*net.IPNet); isIpNet && !ipNet.IP.IsLoopback() {
-			if ipNet.IP.To4() != nil {
-				ipv4 = ipNet.IP.String()
-				return
-			}
-		}
-	}
-	err = errors.New("local ip not found")
-	return
 }
 
 func (g *Gateway) ListenAndServe() error {
